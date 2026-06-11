@@ -1,7 +1,7 @@
 ---
 name: text-to-card
 description: 文章/博客转图文卡片流水线：大纲→AI生成HTML→截图PNG。AI按设计系统直接生成完整HTML，Playwright截图。适用于小红书、微信等平台。
-version: 0.7.5
+version: 0.8.1
 author: Hermes Agent
 license: MIT
 metadata:
@@ -9,7 +9,7 @@ metadata:
     tags: [content, social-media, xiaohongshu, wechat, html, screenshot]
 ---
 
-# Text-to-Card 文章转图文卡片 v0.7.3
+# Text-to-Card 文章转图文卡片 v0.8.0
 
 将文章/博客转化为精美图文卡片。AI 按设计系统直接生成完整 HTML，Playwright 截图输出 PNG。
 
@@ -158,9 +158,12 @@ Python Playwright 统一截图 PNG
 预览方式（按优先级）：
 
 **方式1：HTTP文件服务器（推荐，多卡片时必用）**
-- 启动 `python3 -m http.server 8899` 在HTML目录
-- 获取公网IP：`curl -s4 https://api.ipify.org`（⚠️ 这是远程VPS，hostname -I是内网IP）
-- 发链接给用户在手机浏览器查看HTML源码
+- 在 `/tmp` 下创建临时目录，用 `ln -s` 软链接指向 `output/` 目录（这样用户浏览器能同时看到所有项目）
+- 启动 `python3 -m http.server 8899` 在临时目录
+- 获取公网IP：`curl -s4 https://api.ipify.org`（⚠️ 远程VPS，hostname -I是内网IP）
+- 用户在手机浏览器打开链接查看HTML源码
+- 用完关掉：`kill $(lsof -ti:8899)`
+- **不要把成品cp到/tmp再起服务器**，用symlink引用成品目录，避免两份文件不同步
 - 用户确认HTML OK后，再批量截图
 
 **方式2：截图抽样（仅2-3张时）**
@@ -185,7 +188,21 @@ python scripts/screenshot.py --files card_01.html card_02.html ... --output ./pr
 - `card_01_draft.html` → `card_01_final.html`
 - 截图输出 `card_01_final.png`
 
-全部输出到 **workspace 目录**（如 `/root/.openclaw/workspace/output/小红书卡片/`），**绝对不要用 /tmp**（重启丢失）
+全部输出到 **skill output 目录**（`~/.hermes/skills/creative/text-to-card/output/YYYYMMDD-主题/`），**绝对不要用 /tmp**（重启丢失）。
+
+**⛔ 不要存到 `~/.openclaw/workspace/output/`！** openclaw 和 Hermes 无关。
+
+## 版本控制
+
+成品目录有本地 git 版本管理，远程仓库：**kelegele/ai-creative-toolkit**
+
+每次项目定版后 commit + push：
+```bash
+cd ~/.hermes/skills/creative/text-to-card
+git add -A
+git commit -m "定版: YYYYMMDD-主题"
+git push
+```
 
 ## 文件结构
 
@@ -204,13 +221,13 @@ text-to-card/
 
 ## ⚠️ 教训与陷阱
 
-### ⚠️ 章节结构：英文标签作为边缘标注（非独立卡片）
+### ⚠️ 章节标签（WHY/WHAT/TOOLS/HOW等）：边缘标注，不占页
 
-长内容（10张+）可用章节组织，但章节不单独占一页。
-- 章节标签用英文大写（如 WHY、WHAT、TOOLS、HOW），显示在卡片边缘
-- **标签不要放进标题里**，标题保持纯净
-- 标签只是视觉锚点，帮助读者快速定位内容在整体结构中的位置
+- 章节标签用英文大写，显示在卡片边缘（如编号下方或右上角），小字（14px JetBrains Mono）
+- **标签不要放进标题里**（❌ "WHY·标题" / ✅ 标题单独，标签边缘标注）
+- **不要单独为章节做一张卡片**（浪费页数）
 - 章节分组由用户决定，Agent先提议分组方案
+- 计算总张数时，章节卡不计入（标签是装饰不是独立页）
 
 ### ⚠️ 工具/产品类内容的大纲注意事项
 
@@ -319,37 +336,28 @@ CARDS:
 
 ### 输出路径：skill output = 主目录，openclaw = 备份
 
-**⚠️ 主工作目录（成品存放地）**：`~/.hermes/skills/creative/text-to-card/output/<project>/`（如 `agentic-18cards/`、`ai-ui-design/`）
+**⚠️ 主工作目录（成品存放地）**：`~/.hermes/skills/creative/text-to-card/output/YYYYMMDD-主题/`
 **⛔ openclaw不是成品目录，永远不要把成品放在 `~/.openclaw/workspace/output/`！**
 
 **2026-06-09/06-12 飞栗多次纠正**：成品必须放在 skill output 目录，openclaw 与 Hermes 无关，不要混用。HTML源文件和PNG都要保存到成品目录。
 
-**定版流程**：用户说"OK/确认/定版" → **立即**将最终 PNG/HTML 保存到 skill output 目录 + 归档到 openclaw workspace。不要等，不要"之后再整理"。
+**定版流程**：用户说"OK/确认/定版" → **立即**将最终 PNG/HTML 保存到 skill output 目录。不要等，不要"之后再整理"。
 **❌ 2026-06-09 血泪教训**：用户确认了衬线体版本为定版，但该版本从未持久化。下次会话时服务器上所有版本都不是用户要的，只能让用户从手机重发截图（JPG画质低于原始PNG）。
 
 **⚠️ /tmp 禁止存放最终产物！** /tmp 重启后丢失。
 
-目录名格式：`YYYYMMDD-主题`，如 `20260606-Agent技巧/`
+目录名格式：`YYYYMMDD-主题`，如 `20260612-ai-ui-design/`
 
-子目录结构：
-- `html/` — HTML源文件 + zip
-- `png/` — PNG截图
-- `封面/` — 封面图（HTML+PNG）
-- `小红书配文.txt` — 文案
-
-示例：
-```
-~/.openclaw/workspace/output/AI自媒体/20260606-Agent技巧/
-├ html/          ← 18张HTML + zip
-├ png/           ← 18张PNG
-├ 封面/          ← cover_test3
-└ 小红书配文.txt
-```
+子目录结构（HTML在项目根，PNG在preview子目录）：
+- `card_01.html ~ card_XX.html` — HTML源文件
+- `preview/01.png ~ XX.png` — PNG截图
+- `小红书配文.txt` — 文案（如有）
+- `archive/` — 废弃/未完成项目
 
 ### ⚠️ 多版本混乱：如何找到真正的"定版"
 
-当存在多个版本目录时（如 agentic-22tips/、agentic-18cards/、ai-ui-design/），按以下顺序判断：
-1. **skill output 目录** = 最新项目目录（如 `ai-ui-design/`）
+当存在多个版本目录时（如 `20260608-agentic-18cards/`、`20260612-ai-ui-design/`），按以下顺序判断：
+1. **skill output 目录** = 最新项目目录（按日期排序）
 2. **/tmp 下目录** = 临时文件，随时可能丢失
 3. **openclaw workspace** = 已废弃，不要作为成品目录
 
@@ -393,12 +401,6 @@ CARDS:
 - ❌ 不要单独为章节做一张卡片（浪费页数）
 - ❌ 不要把章节标签放进标题文本里（如"WHY · 不是设计师"是错的）
 - ✅ 章节标签独立于标题，用不同颜色/字号/位置区分
-
-### ⚠️ 章节标签独立显示，不要放进标题文本
-- 章节分类（如WHY/WHAT/TOOLS/HOW）应作为卡片边缘的独立标签显示
-- 不要把章节标签写到标题文本里（如"WHY·标题"是错的）
-- 标签用小字（14px），放在卡片右上角或编号下方，用JetBrains Mono等宽体
-- 可以用英文缩写（用户偏好）：WHY / WHAT / TOOLS / HOW
 
 ### 内容页有两种布局：单点卡 vs 合并卡
 
@@ -449,12 +451,7 @@ CARDS:
 - 用户挑完的列表就是定稿，不要试图"帮你补全"或"我觉得这个也应该加"
 - 用户可能有自己的信息来源和判断，Agent的补充往往是多余的
 
-### ⚠️ 章节结构：用户提出时要跟进
-- 用户说"分几个章节"或给出结构框架（如为什么/是什么/有什么/如何做），严格按其框架组织
-- 章节卡（纯标题页，无正文）也算一张，要计入总张数
-- 计算总张数时：封面 + 章节卡(N) + 内容卡(N) + 结尾页 = 总张数
-
-### ⚠️ 内容必须忠实原文，不要擅自合并精简
+### ⚠️ 大纲太杂时让用户自己挑
 - 用户给你文章拆卡片，期望的是完整拆解，不是你的"精华版"
 - ❌ 错误：22条技巧合并成13条（用户原话："22条分别是啥？只有13条内容吗？"）
 - ✅ 正确：原文有多少条就拆多少条，每条独立一张卡片
@@ -622,10 +619,55 @@ output/
 - 第1期：`output/20260608-agentic-18cards/`（18 HTML + 18 PNG）
 - 第2期：`output/20260612-ai-ui-design/`（15 HTML + 15 PNG）
 
+## 版本管理与Git工作流
+
+内容创作项目纳入Git版本管理（仓库：kelegele/ai-creative-toolkit）。
+
+### 日常提交流程
+```bash
+cd ~/.hermes/skills/creative/text-to-card
+git add -A
+git commit -m "update: YYYYMMDD-主题 内容更新"
+git push origin main
+```
+
+### GitHub连通性（2026-06-12修正）
+- ✅ VPS能直连GitHub（api.github.com和github.com均可达）
+- ⚠️ `.gitconfig`里如果有`insteadOf`重定向到代理，会导致push失败（即使代理本身挂了）
+- 下载大仓库时用`gitp` alias走代理（配置在`~/.bashrc`）
+- push时确保remote URL是`https://github.com/...`而非代理URL
+
+### 文件服务器预览
+用软链接指向output根目录，启动HTTP服务器：
+```bash
+rm -rf /tmp/ui-design && mkdir -p /tmp/ui-design
+cd /tmp/ui-design && ln -sf ~/.hermes/skills/creative/text-to-card/output output
+python3 -m http.server 8899
+```
+公网IP获取：`curl -s4 https://api.ipify.org`（⚠️ 远程VPS，不要用hostname -I）
+
+### .gitignore
+```gitignore
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+output/archive/
+```
+
 ## 依赖
 
 - **Playwright**：`pip install playwright && playwright install chromium`
 - Python 3.11+
+
+## 版本控制
+
+text-to-card skill 目录本身是一个 git 仓库，远程为 `kelegele/ai-creative-toolkit`。
+
+- 每次项目完成后 `git add -A && git commit` 提交到 main
+- 新项目产出物（HTML + PNG）自动纳入版本管理
+- `output/archive/` 目录在 `.gitignore` 中排除（废弃项目不入库）
+- **⚠️ VPS能直连GitHub**，但`.gitconfig`的`insteadOf`会重定向到代理导致失败。已改为`gitp` alias按需走代理（见`~/.bashrc`）
 
 ## 用法
 
