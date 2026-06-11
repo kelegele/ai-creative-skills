@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card 18 / 18 — Ending</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@600;900&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1440px;
+    overflow: hidden;
+    background: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+  }
+
+  /* Top orange bar */
+  .top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: #FF5701;
+    z-index: 10;
+  }
+
+  /* Corner brackets */
+  .corner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    z-index: 5;
+  }
+  .corner-tl {
+    top: 48px;
+    left: 48px;
+    border-top: 3px solid #E5E7EB;
+    border-left: 3px solid #E5E7EB;
+  }
+  .corner-br {
+    bottom: 88px;
+    right: 48px;
+    border-bottom: 3px solid #E5E7EB;
+    border-right: 3px solid #E5E7EB;
+  }
+
+  /* Background watermark quotes */
+  .watermark {
+    position: absolute;
+    font-family: 'Playfair Display', serif;
+    font-size: 400px;
+    line-height: 1;
+    color: #FF5701;
+    opacity: 0.08;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
+  }
+  .watermark-open {
+    top: 80px;
+    left: 60px;
+  }
+  .watermark-close {
+    bottom: 100px;
+    right: 60px;
+  }
+
+  /* Main content area */
+  .content {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 8px - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    padding: 0 120px;
+  }
+
+  .quote-text {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 900;
+    font-size: 60px;
+    color: #111827;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 48px;
+    letter-spacing: 0.02em;
+  }
+
+  .divider {
+    width: 120px;
+    height: 4px;
+    background: #FF5701;
+    border-radius: 2px;
+    margin-bottom: 48px;
+  }
+
+  .attribution {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    color: #6B7280;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .source-line-1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    color: #9CA3AF;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .source-line-2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    color: #9CA3AF;
+    text-align: center;
+  }
+  .source-line-2 .highlight {
+    font-family: 'JetBrains Mono', monospace;
+    color: #FF5701;
+  }
+
+  /* Bottom bar */
+  .bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: #F6F6F1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .bottom-bar .page-number { font-family: 'Playfair Display', Georgia, 'Noto Serif SC', serif; font-size: 22px; font-weight: 500; color: #9CA3AF; letter-spacing: 1px; }
+
+  /* Bottom decorative gradient bar */
+  .bottom-deco {
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(to right, #FF5701, #F6F6F1, #FF5701);
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top orange bar -->
+  <div class="top-bar"></div>
+
+  <!-- Corner brackets -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-br"></div>
+
+  <!-- Background watermark quotes -->
+  <div class="watermark watermark-open">"</div>
+  <div class="watermark watermark-close">"</div>
+
+  <!-- Main content -->
+  <div class="content">
+    <div class="quote-text">做那个提供品味的人，<br>让Agent做那双执行的手</div>
+    <div class="divider"></div>
+    <div class="attribution">@mvanhorn · June 2026</div>
+    <div class="source-line-1">基于 Matt Van Horn 原文改编</div>
+    <div class="source-line-2">原文 <span class="highlight">913K+</span> 阅读</div>
+  </div>
+
+  <!-- Bottom decorative gradient bar -->
+  <div class="bottom-deco"></div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <span class="page-number">18 / 18</span>
+  </div>
+
+</body>
+</html>

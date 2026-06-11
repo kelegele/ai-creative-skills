@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1440px; overflow: hidden; background: #FFFFFF; font-family: 'Inter', sans-serif; color: #111827; }
+  .card { width: 1080px; height: 1440px; position: relative; padding: 80px 88px; display: flex; flex-direction: column; }
+  .card-number { font-family: 'Playfair Display', serif; font-size: 96px; font-weight: 600; color: #FF5701; line-height: 1; letter-spacing: -2px; }
+  .page-indicator { position: absolute; top: 88px; right: 88px; font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 500; color: #9CA3AF; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; color: #9CA3AF; letter-spacing: 2px; margin-top: 16px; text-transform: uppercase; }
+  .title { font-family: 'Noto Serif SC', 'Playfair Display', serif; font-size: 72px; font-weight: 900; line-height: 1.25; color: #111827; margin-top: 48px; }
+  .title-accent { width: 80px; height: 6px; background: #FF5701; margin-top: 32px; border-radius: 3px; }
+  .body { font-family: 'Inter', sans-serif; font-size: 44px; font-weight: 400; line-height: 1.7; color: #374151; margin-top: 48px; max-width: 880px; }
+  .body-line { display: block; margin-bottom: 12px; }
+  .body-line:last-child { margin-bottom: 0; }
+  .tip { font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 500; line-height: 1.6; color: #FF5701; margin-top: 48px; padding: 28px 32px; background: #FFF5EE; border-left: 5px solid #FF5701; border-radius: 0 12px 12px 0; max-width: 880px; }
+  .bottom-deco { position: absolute; bottom: 0; left: 0; width: 1080px; height: 8px; background: linear-gradient(90deg, #FF5701 0%, #FF5701 33%, #F6F6F1 33%, #F6F6F1 66%, #FF5701 66%, #FF5701 100%); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-number">14</div>
+  <div class="page-indicator">14 / 16</div>
+  <div class="section-tag">HOW</div>
+  <div class="title">桌面Agent vs 专用工具，选哪个</div>
+  <div class="title-accent"></div>
+  <div class="body">
+    <span class="body-line">深度控制、本地运行 → Claude Code / Codex</span>
+    <span class="body-line">快速出原型、在线编辑 → v0 / Bolt / Lovable</span>
+    <span class="body-line">品牌级设计稿 → Ardot / Moonchild / Flowstep</span>
+    <span class="body-line">不确定从哪开始？</span>
+    <span class="body-line">先试v0，零门槛上手</span>
+  </div>
+  <div class="tip">💡 新手起步直接打开v0.dev，输一句话就能看到效果，比装环境快十倍</div>
+  <div class="bottom-deco"></div>
+</div>
+</body>
+</html>

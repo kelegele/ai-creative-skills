@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card 08</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500;600&family=Noto+Serif+SC:wght@900&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px;
+    height: 1440px;
+    background: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+  .card {
+    width: 1080px;
+    height: 1440px;
+    position: relative;
+    padding: 80px 72px 60px 72px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-number { font-family: 'Playfair Display', Georgia, 'Noto Serif SC', serif; font-size: 120px; font-weight: 700; color: #FF5701; line-height: 1; letter-spacing: -2px; }
+  .page-indicator {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    color: #9CA3AF;
+    position: absolute;
+    top: 72px;
+    right: 72px;
+    z-index: 2;
+  }
+  .content-area {
+    margin-top: 140px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0;
+  }
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+    justify-content: center;
+  }
+  .title-accent {
+    width: 80px;
+    height: 6px;
+    background: #FF5701;
+    border-radius: 3px;
+  }
+  .title {
+    font-family: 'Noto Serif SC', 'Playfair Display', serif;
+    font-size: 56px;
+    font-weight: 900;
+    color: #111827;
+    line-height: 1.3;
+  }
+  .body-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1.75;
+    color: #374151;
+  }
+  .tip {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: #FF5701;
+    background: #FFF7F2;
+    border-left: 5px solid #FF5701;
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px;
+    line-height: 1.5;
+  }
+  .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 24px 0;
+  }
+  .divider-line {
+    width: 100%;
+    height: 3px;
+    background: #F6F6F1;
+    position: absolute;
+  }
+  .divider-dot {
+    width: 12px;
+    height: 12px;
+    background: #FF5701;
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+  }
+  .bottom-deco {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(90deg, #FF5701, #FF8A4C, #FFB088);
+  }
+  .geo-circle {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 87, 1, 0.06);
+    bottom: -80px;
+    right: -80px;
+    z-index: 0;
+  }
+  .geo-square {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border: 2px solid rgba(255, 87, 1, 0.06);
+    transform: rotate(25deg);
+    top: 160px;
+    right: -40px;
+    z-index: 0;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-number">08</div>
+  <div class="page-indicator">08 / 18</div>
+
+  <div class="geo-circle"></div>
+  <div class="geo-square"></div>
+
+  <div class="content-area">
+    <div class="section">
+      <div class="title-accent"></div>
+      <div class="title">信任Agent，跳过权限确认</div>
+      <div class="body-text">同时跑6个会话，不可能挨个确认权限。开启bypass模式，配合声音提醒知道哪个完成了。有Git兜底，大不了回滚。</div>
+      <div class="tip">💡 让Agent直接改代码，改完 git diff 审查一遍就行</div>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-dot"></div>
+    </div>
+
+    <div class="section">
+      <div class="title-accent"></div>
+      <div class="title">双引擎并行</div>
+      <div class="body-text">一个引擎负责规划和品味，另一个负责构建和执行。两个并排跑，大型并行构建推给第二引擎，第一个专注规划。</div>
+      <div class="tip">💡 用两个AI引擎各司其职，一个负责想一个负责做</div>
+    </div>
+  </div>
+
+  <div class="bottom-deco"></div>
+</div>
+</body>
+</html>

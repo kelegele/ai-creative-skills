@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Card 01 - 封面</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1080px;
+    height: 1440px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    background: #FFFFFF;
+  }
+  .card {
+    position: relative;
+    width: 1080px;
+    height: 1440px;
+    overflow: hidden;
+    background: #FFFFFF;
+  }
+
+  /* 底部三段式横条 */
+  .bottom-bars {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    display: flex;
+  }
+  .bottom-bars .bar-left {
+    width: 33%;
+    height: 100%;
+    background: #FF5701;
+  }
+  .bottom-bars .bar-mid {
+    width: 34%;
+    height: 100%;
+    background: #F6F6F1;
+  }
+  .bottom-bars .bar-right {
+    width: 33%;
+    height: 100%;
+    background: #FF5701;
+  }
+
+  /* 装饰性大字 01 */
+  .deco-number {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 600px;
+    color: rgba(255, 87, 1, 0.06);
+    line-height: 1;
+    letter-spacing: -20px;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+
+  /* 左上角 badge */
+  .badge {
+    position: absolute;
+    top: 80px;
+    left: 80px;
+    background: #FF5701;
+    color: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    padding: 14px 32px;
+    border-radius: 50px;
+    letter-spacing: 2px;
+    z-index: 10;
+  }
+
+  /* 主内容区域 */
+  .main-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    padding: 0 80px;
+  }
+
+  /* 标题 */
+  .title {
+    font-family: 'Noto Serif SC', 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 88px;
+    color: #111827;
+    text-align: center;
+    line-height: 1.25;
+    letter-spacing: 2px;
+    margin-bottom: 40px;
+  }
+  .title .highlight {
+    color: #FF5701;
+  }
+
+  /* 引子 */
+  .subtitle {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 32px;
+    color: #6B7280;
+    text-align: center;
+    line-height: 1.6;
+    max-width: 780px;
+  }
+
+  /* 底部 footer */
+  .footer {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 80px;
+    z-index: 10;
+  }
+  .footer .page-indicator {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    color: #9CA3AF;
+    letter-spacing: 2px;
+  }
+  .footer .brand {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 24px;
+    color: #111827;
+    letter-spacing: 6px;
+  }
+
+  /* 装饰线条 */
+  .deco-line {
+    position: absolute;
+    width: 80px;
+    height: 4px;
+    background: #FF5701;
+    border-radius: 2px;
+  }
+  .deco-line.top-right {
+    top: 88px;
+    right: 80px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- 底部三段式横条 -->
+  <div class="bottom-bars">
+    <div class="bar-left"></div>
+    <div class="bar-mid"></div>
+    <div class="bar-right"></div>
+  </div>
+
+  <!-- 装饰性大字 -->
+  <div class="deco-number">01</div>
+
+  <!-- 左上角 badge -->
+  <div class="badge">AI 设计</div>
+
+  <!-- 右上角装饰线 -->
+  <div class="deco-line top-right"></div>
+
+  <!-- 主内容 -->
+  <div class="main-content">
+    <h1 class="title">
+      <span class="highlight">小白也能用AI</span><br>出设计稿
+    </h1>
+    <p class="subtitle">不懂配色、排版、间距？<br>一句话出专业UI稿</p>
+  </div>
+
+  <!-- 底部 footer -->
+  <div class="footer">
+    <span class="page-indicator">01 / 16</span>
+    <span class="brand">AGENTIC</span>
+  </div>
+</div>
+</body>
+</html>

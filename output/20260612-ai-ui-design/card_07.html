@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1440px; overflow: hidden; background: #FFFFFF; font-family: 'Inter', sans-serif; color: #111827; }
+  .card { width: 1080px; height: 1440px; position: relative; padding: 80px 88px; display: flex; flex-direction: column; }
+  .card-number { font-family: 'Playfair Display', serif; font-size: 96px; font-weight: 600; color: #FF5701; line-height: 1; letter-spacing: -2px; }
+  .page-indicator { position: absolute; top: 88px; right: 88px; font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 500; color: #9CA3AF; }
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; color: #9CA3AF; letter-spacing: 2px; margin-top: 16px; text-transform: uppercase; }
+  .title { font-family: 'Noto Serif SC', 'Playfair Display', serif; font-size: 72px; font-weight: 900; line-height: 1.25; color: #111827; margin-top: 48px; }
+  .title-accent { width: 80px; height: 6px; background: #FF5701; margin-top: 32px; border-radius: 3px; }
+  .body { font-family: 'Inter', sans-serif; font-size: 44px; font-weight: 400; line-height: 1.7; color: #374151; margin-top: 48px; max-width: 880px; }
+  .body-line { display: block; margin-bottom: 12px; }
+  .body-line:last-child { margin-bottom: 0; }
+  .tip { font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 500; line-height: 1.6; color: #FF5701; margin-top: 48px; padding: 28px 32px; background: #FFF5EE; border-left: 5px solid #FF5701; border-radius: 0 12px 12px 0; max-width: 880px; }
+  .bottom-deco { position: absolute; bottom: 0; left: 0; width: 1080px; height: 8px; background: linear-gradient(90deg, #FF5701 0%, #FF5701 33%, #F6F6F1 33%, #F6F6F1 66%, #FF5701 66%, #FF5701 100%); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-number">07</div>
+  <div class="page-indicator">07/16</div>
+  <div class="section-tag">TOOLS</div>
+  <div class="title">v0（Vercel）：一句话生成前端组件</div>
+  <div class="title-accent"></div>
+  <div class="body">
+    <span class="body-line">不需要会编程，打开网页就能用</span>
+    <span class="body-line">输入"做一个定价页"，直接出可交互界面</span>
+    <span class="body-line">不满意打字让它改</span>
+    <span class="body-line">基于Shadcn/ui + Tailwind CSS</span>
+    <span class="body-line">代码质量高，直接复制到项目</span>
+  </div>
+  <div class="tip">💡 打开v0.dev输入"做一个SaaS产品首页"，改两轮就能截图发朋友圈</div>
+  <div class="bottom-deco"></div>
+</div>
+</body>
+</html>

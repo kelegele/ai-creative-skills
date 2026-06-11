@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>01 - Cover</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1440px; overflow: hidden; background: #FFFFFF; font-family: 'Inter', sans-serif; color: #111827; }
+
+  /* Watermark */
+  .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%); font-family: 'Playfair Display', serif; font-size: 720px; font-weight: 900; color: #FF5701; opacity: 0.06; line-height: 1; pointer-events: none; }
+
+  /* Top bar */
+  .top-bar { position: absolute; top: 0; left: 0; width: 1080px; height: 12px; background: #FF5701; }
+
+  /* Main content area */
+  .content { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 160px 88px 160px; display: flex; flex-direction: column; }
+
+  /* Badge */
+  .badge { display: inline-block; width: fit-content; font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 600; color: #FFFFFF; background: #FF5701; padding: 12px 28px; border-radius: 6px; letter-spacing: 2px; margin-bottom: 60px; }
+
+  /* Title */
+  .main-title { font-family: 'Noto Serif SC', serif; font-size: 82px; font-weight: 900; line-height: 1.35; color: #111827; margin-bottom: 48px; }
+  .main-title .accent { color: #FF5701; }
+
+  /* Accent line */
+  .accent-line { width: 120px; height: 6px; background: #FF5701; border-radius: 3px; margin-bottom: 48px; }
+
+  /* Secondary */
+  .secondary { font-family: 'Inter', sans-serif; font-size: 34px; color: #6B7280; line-height: 1.6; }
+  .secondary .hl { color: #FF5701; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+  /* Bottom bar */
+  .bottom-bar { position: absolute; bottom: 0; left: 0; width: 1080px; height: 72px; background: #F6F6F1; display: flex; align-items: center; justify-content: space-between; padding: 0 88px; z-index: 2; }
+  .page-num { font-family: 'Playfair Display', Georgia, 'Noto Serif SC', serif; font-size: 22px; font-weight: 500; color: #9CA3AF; letter-spacing: 1px; }
+  .brand { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; color: #111827; letter-spacing: 3px; }
+
+  /* Corner brackets */
+  .corner { position: absolute; width: 48px; height: 48px; z-index: 1; }
+  .tl { top: 40px; left: 40px; border-top: 3px solid #E5E7EB; border-left: 3px solid #E5E7EB; }
+  .br { bottom: 88px; right: 40px; border-bottom: 3px solid #E5E7EB; border-right: 3px solid #E5E7EB; }
+
+  /* Geometric decorations */
+  .geo-dot { position: absolute; top: 180px; right: 120px; width: 20px; height: 20px; background: #FF5701; opacity: 0.2; border-radius: 50%; }
+  .geo-ring { position: absolute; bottom: 200px; right: 100px; width: 140px; height: 140px; border: 4px solid #F6F6F1; border-radius: 50%; }
+  .geo-line { position: absolute; bottom: 300px; left: 88px; width: 200px; height: 3px; background: #F6F6F1; }
+</style>
+</head>
+<body>
+<div class="watermark">22</div>
+<div class="top-bar"></div>
+<div class="corner tl"></div>
+<div class="corner br"></div>
+<div class="geo-dot"></div>
+<div class="geo-ring"></div>
+<div class="geo-line"></div>
+
+<div class="content">
+  <div class="badge">深度拆解</div>
+  <div class="main-title">掌握 <span class="accent">Matt Van Horn</span> 的22条<br>驾驭Agent的技巧，<br>不再被笨AI气到跳脚</div>
+  <div class="accent-line"></div>
+  <div class="secondary">原文 <span class="hl">913K</span> 阅读 · 我帮你拆成了 <span class="hl">18</span> 张卡片</div>
+</div>
+
+<div class="bottom-bar">
+  <span class="page-num">01 / 18</span>
+  <span class="brand">AGENTIC</span>
+</div>
+</body>
+</html>
