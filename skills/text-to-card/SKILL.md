@@ -632,10 +632,12 @@ git push origin main
 ```
 
 ### GitHub连通性（2026-06-12修正）
-- ✅ VPS能直连GitHub（api.github.com和github.com均可达）
+- `api.github.com`（REST API）始终可达，`github.com`（git协议）间歇性超时
 - ⚠️ `.gitconfig`里如果有`insteadOf`重定向到代理，会导致push失败（即使代理本身挂了）
 - 下载大仓库时用`gitp` alias走代理（配置在`~/.bashrc`）
 - push时确保remote URL是`https://github.com/...`而非代理URL
+- **push超时时**：`git -c core.compression=9 push origin main` 压缩级别拉满，提高成功率
+- `git push --dry-run` 瞬间返回，可先验证本地计算是否正常
 
 ### 文件服务器预览
 用软链接指向output根目录，启动HTTP服务器：
@@ -667,7 +669,7 @@ text-to-card skill 目录本身是一个 git 仓库，远程为 `kelegele/ai-cre
 - 每次项目完成后 `git add -A && git commit` 提交到 main
 - 新项目产出物（HTML + PNG）自动纳入版本管理
 - `output/archive/` 目录在 `.gitignore` 中排除（废弃项目不入库）
-- **⚠️ VPS能直连GitHub**，但`.gitconfig`的`insteadOf`会重定向到代理导致失败。已改为`gitp` alias按需走代理（见`~/.bashrc`）
+- **⚠️ VPS的`github.com`（git协议）间歇性超时**，`api.github.com`始终可达。push超时用`git -c core.compression=9 push`，避免反复试
 
 ## 用法
 
