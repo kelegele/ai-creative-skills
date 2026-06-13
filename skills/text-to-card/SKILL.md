@@ -1,7 +1,7 @@
 ---
 name: text-to-card
 description: Use when turning articles/blog posts into social image card sets (封面+内容卡+结尾) for 小红书/微信/微博. Triggers include 图文卡片, 文章转卡片, 做卡片, 小红书卡片, card generation, article to cards.
-version: 0.9.0
+version: 0.9.1
 author: Kelegele
 license: MIT
 metadata:
@@ -85,6 +85,8 @@ metadata:
 每张:加载 DESIGN_TEMPLATE → 按其色板/字体/排版生成 → 独立 .html,viewport 对应尺寸 → 命名按 HTML_PATTERN。
 HTML 要求:完整 `<!DOCTYPE html>`、Google Fonts(含 Noto Serif SC 中文)、样式内联 `<style>`、viewport 固定 `overflow:hidden`、中文优先排版。
 
+**⚠️ 字体字重一致性(防低级错误):** 每个 `font-family` 用到的字体 + 每个 `font-weight` 字重,**都必须在 Google Fonts `<link>` 里加载**。漏加载 → fallback 系统字体 / 浏览器合成 fake bold(笔画失真,数字尤其明显,曾出现 card-number 09 看着像不同字体)。写完所有卡跑 `check_fonts.py` 校验(第7步)。
+
 ### 第5步 预览(用户确认 HTML 后再截图)
 **⚠️ 不要在用户确认 HTML 前生成截图!**
 通用方式:`screenshot.py` 截图基准卡 2-3 张抽样 → 发用户确认风格。(IM 对话型 agent 环境的文件服务器预览见 `references/im-agent-env.md`)
@@ -95,6 +97,8 @@ HTML 要求:完整 `<!DOCTYPE html>`、Google Fonts(含 Noto Serif SC 中文)、
 
 ### 第7步 定版+截图
 用户确认后,最终 HTML + PNG 存到 OUTPUT_DIR。HTML 按 HTML_PATTERN,PNG 放 PNG_SUBDIR(跟随 stem)。**定版立即保存,不等不拖。** 版本管理用新目录避免覆盖。
+
+**⚠️ 定版前必跑字体校验:** `uv run python scripts/check_fonts.py <OUTPUT_DIR>`,**0 报警才定版**。它自动抓两类低级错误(人眼 review 必漏):① font-family 用了某字体但 `<link>` 没加载;② font-weight 用了某字重但该字重没加载。有报警 → 修 `<link>` 的 `wght@` 补字重,或改 CSS `font-weight` 用已加载的 → 重截图 → 再校验到 0。
 
 ## 卡片设计系统(布局规则)
 配色/字体由 DESIGN_TEMPLATE 决定。布局规则通用:
@@ -129,15 +133,17 @@ HTML 要求:完整 `<!DOCTYPE html>`、Google Fonts(含 Noto Serif SC 中文)、
 ## 小红书配文写作
 卡片做完后通常需要发布文案。
 
-**风格铁律:** 第一人称(我/我以前)、对话感(像跟朋友聊天,可吐槽)、反 AI 腔(禁"在当今AI时代""让我们一起""助力""赋能""你值得拥有")、口语化(短句为主,偶尔长句制造节奏)。
+**风格由用户人设决定**(不同人设口径不同)。写前先确认/读用户人设文档。
+- **反 AI 腔**(通用):禁"在当今 AI 时代""让我们一起""助力""赋能""你值得拥有"等套话;靠**具体信息和判断**,不要正确废话。
+- **去 AI 味 ≠ 加低俗口语**(教训):别为"去 AI 味"堆网感词(破防/那个味儿/一眼假/那一坨)或砍序号工整——专业人设的序号是结构感,不是 AI 味。真正的去 AI 味靠信息密度。
+- **本项目(飞栗)人设**:冷静的陈述者——客观平和、有对话感、用客观事实制造焦虑、给利他操作路径;保留序号工整。详见调用方项目 `AGENTS.md`「文案口吻(飞栗人设)」。
 
-**结构:** 标题(口语化+痛点/好奇,<25字)→ 开头 1-2 句第一人称引入 → 目录(01/02/03 一行一条)→ 1 句感悟展开 → 行动号召 → 话题标签 5-8 个。
-
-**最易犯的错:写得越来越AI。** 就当微信跟朋友说一件事,怎么说怎么写。口述感标志:有转折(后来…)、有口语(确实有点东西)、有省略感。配文交给用户定稿——用户改出的(观点句开头+个人背景关联)比 AI 迭代都好。emoji 由用户决定。
+**结构:** 标题(痛点/好奇,小红书≤20字)→ 引入 → 编号要点(01/02/03)→ 展开 → 操作指引 → 话题标签 5-8 个。配文存 `Content/<组>/copy.md`,**顶部放纯文本可直接复制版**(无 markdown 格式),说明/口径放底部 `═══` 分隔。配文交给用户定稿。
 
 ## 依赖 & 截图
 - Playwright + Chromium、Python 3.11+
 - `python scripts/screenshot.py --files card-01.html card-02.html ... --output <OUTPUT_DIR/PNG_SUBDIR>`
+- `uv run python scripts/check_fonts.py <OUTPUT_DIR>` — **定版前字体字重一致性校验**(防 link 漏加载字体/字重,Windows 加 `PYTHONUTF8=1`)
 
 ## 文件命名
 - HTML:`HTML_PATTERN`(用户确定,默认建议 `card-{NN}.html`),**ASCII**(中文文件名致 http.server 404)
@@ -158,7 +164,8 @@ text-to-card/
 │   ├── reference-card-single.html  # 基准卡示例(delegate_task 锚点)
 │   └── matt-van-horn-25-tips.md    # 首次实战的25条完整内容
 └── scripts/
-    └── screenshot.py       # Playwright 截图
+    ├── screenshot.py       # Playwright 截图
+    └── check_fonts.py      # 字体字重一致性校验(定版前必跑)
 ```
 
 > 📎 **IM 对话型 agent 环境**(Hermes/OpenClaw/QwenPaw 等)的文件服务器预览、IM 发图、image_cache 取图、成品路径等见 `references/im-agent-env.md`
