@@ -1,766 +1,164 @@
 ---
 name: text-to-card
-description: 文章/博客转图文卡片流水线：大纲→AI生成HTML→截图PNG。AI按设计系统直接生成完整HTML，Playwright截图。适用于小红书、微信等平台。
-version: 0.8.1
+description: Use when turning articles/blog posts into social image card sets (封面+内容卡+结尾) for 小红书/微信/微博. Triggers include 图文卡片, 文章转卡片, 做卡片, 小红书卡片, card generation, article to cards.
+version: 0.9.0
 author: Hermes Agent
 license: MIT
 metadata:
-  hermes:
-    tags: [content, social-media, xiaohongshu, wechat, html, screenshot]
+  tags: [content, social-media, xiaohongshu, wechat, html, screenshot, design-system]
 ---
 
-# Text-to-Card 文章转图文卡片 v0.8.0
+# Text-to-Card 文章转图文卡片
 
-将文章/博客转化为精美图文卡片。AI 按设计系统直接生成完整 HTML，Playwright 截图输出 PNG。
+将文章/博客转为图文卡片。AI 按**设计模板**直接生成完整 HTML(内联样式),Playwright 截图 PNG。适配任意 agent 环境。
+
+## 第0步:运行参数 + 设计模板(开工前必做)
+
+### 0a 运行参数(问用户,存运行变量,无固定默认)
+开始前问用户,回答存为本次运行变量,全程引用:
+- **OUTPUT_DIR** — "这次输出到哪个目录?"(必问,如 `Content/20260613-xxx/`)
+- **HTML_PATTERN** — "HTML 文件名格式?(建议 `card-{NN}.html`)"
+- **PNG_SUBDIR** — "PNG 放哪个子目录?(建议 `preview/`)"
+
+占位符:`{NN}` 两位序号、`{YYYYMMDD}`、`{slug}`。"建议"仅作提示,以用户回答为准。PNG 跟随 HTML 同名 stem,`screenshot.py --output` 指向 `OUTPUT_DIR/PNG_SUBDIR`。
+
+### 0b 设计模板(动态获取/复用/自定义)
+模板 = 一份 **DESIGN.md** 格式设计系统(配色/字体/组件/布局/反模式/agent 指南),第④步生成时作设计上下文。
+
+1. 读 `templates/.current`(记录上次用的模板名)
+2. 问用户:**用 `<当前>` / 换一个 / 自定义?**
+3. **换一个** → 从 GitHub `nexu-io/open-design` 的 `plugins/_official/design-systems/` 列出(~150 系统:agentic/apple/claude/stripe/xiaohongshu…)。读候选 `open-design.json` 的 title + 中文 description 帮选 → 用户选 → 读该系统 `DESIGN.md` → 存 `templates/<name>.md` → 更新 `.current`
+4. **自定义** → 按 `references/design-md-spec.md` 规范引导写,存调用方项目 `.text-to-card/templates/<name>.md`
+5. 选定 → 存运行变量 **DESIGN_TEMPLATE**
+
+查找优先级:项目 `.text-to-card/templates/` → skill `templates/`。fallback:网络不可达 → 用 `templates/` 现有(至少 `agentic` 内置默认)。
 
 ## 架构
 
 ```
 用户文章 → AI 生成大纲 → 用户确认
-    ↓
-AI 逐张生成完整 HTML（注入设计系统规范）
-    ↓
-Python Playwright 统一截图 PNG
-    ↓
-用户预览 → 修改 → 确认 → 输出
+    → AI 逐张生成完整 HTML(注入 DESIGN_TEMPLATE)
+    → Playwright 截图 PNG → 用户预览 → 修改 → 确认 → 输出到 OUTPUT_DIR
 ```
 
-**关键设计：AI 直接写完整 HTML（内联样式），附带基准卡源码保证一致性，Playwright 统一截图。**
+## 工作流(第0步 + 7步,每步用户确认)
 
-## 工作流（7步，每步需用户确认）
+`0 参数+模板 → ① 接收文章 → ② 大纲 → ③ 分页+尺寸+平台 → ④ 生成HTML(基准卡先行) → ⑤ 预览 → ⑥ 修改/确认 → ⑦ 定版+截图`
 
-```
-① 文章输入 → ② 生成大纲(含封面/结尾) → ③ 分页+选尺寸
-→ ④ AI生成HTML草稿 → ⑤ 预览(截图发给用户) → ⑥ 用户修改/确认
-→ ⑦ 生成正式版+截图PNG
-```
+### 第1步 接收文章
+用户提供文章文本(纯文本/Markdown)或 URL(agent 抓取)。
 
-### 第1步：接收文章
+### 第2步 生成大纲(封面+内容+结尾)
+- AI 提取结构:标题/小标题/论点/金句
+- **封面页**:标题 + 引子
+- **内容页**:标题 + 精简要点(3-5句,每句独立一行) + 💡实战场景句
+- **结尾页**:收尾金句 + 来源标注
+- 编号大纲展示,用户调整后确认
 
-用户提供文章文本（纯文本/Markdown）或文章URL（Agent抓取内容）。
+**⚠️ 内容卡文字精简,不要长段落。** 每张 3-5 句,每句独立一行,正文 42-48px,行高 1.6-1.8。详细内容留给配文,卡片只"说清楚"。让用户审阅精选,不要塞满。
 
-### 第2步：生成大纲（含封面 + 结尾页）
+**⚠️ 保留原文粒度,不擅自合并。** 有 N 条就拆 N 张,合并/精简由用户决定。(曾被驳回:25 条被合并成 13 条。)
 
-- AI 提取文章结构：标题、小标题、关键论点、金句
-- **封面页**：标题 + 引子（见下方"引子写作指南"）
-- **内容页**：标题 + 精简要点（3-5句，每句独立一行）+ 💡实战场景句（见下方"内容页结构"）
-- **结尾页**：收尾金句 + 来源标注
-- 编号大纲展示给用户
-- 用户可调整后确认
+**⚠️ 引子=标题**,短、直击痛点、大白话。❌"配色选了又改…"(长) ✅"小白也能用AI出设计稿"。区分推荐 vs 原创。作者信息必须核实不编造。标题用中文。
 
-**⚠️ 内容卡文字要精简，不要长段落！**
-- 每张内容卡只放3-5句精简要点，每句独立一行（HTML用`<br>`或多段`<p>`）
-- 字体要大（42-48px），行高1.6-1.8
-- 详细的内容放在后续的文案/文章里出，卡片只负责"说清楚"
-- ❌ 错误：整段200字的长文本塞进卡片
-- ✅ 正确：4句话，每句一行，大字，一目了然
-- **⚠️ 让用户审阅并精选，不要塞满**：Agent先出完整大纲，让用户挑选/调整条目。用户可能会大幅删减或重新分组，尊重用户的选择
+**⚠️ 选题/目标受众/工具范围对齐。** 用户指定就遵循,不自行发挥。目标受众没说就先问。工具范围先问再列(别漏用户常用工具,别硬塞专业工具)。
 
-**⚠️ 保留原文粒度，不要擅自合并！**
-- 文章有N条技巧就拆N张内容卡，不要自行判断「有重叠就合并」
-- 合并/精简必须由用户决定，Agent只负责提取和展示
-- ❌ 错误：把25条技巧合并成13条（「我觉得有重叠」）
-- ✅ 正确：列出全部25条，让用户决定合并哪些
+**⚠️ 大纲不自作主张。** 用户给选题标题就按标题理解,不加限定/人群/技术栈。太杂(>15)让用户自己挑。
 
-**⚠️ 引子写作指南（封面必备）**
+#### 内容页结构(每张3层)
+1. **标题**:精炼要点(如"永远先写计划")
+2. **要点**:3-5句精简,每句独立一行(非长段)
+3. **💡实战场景句**:具体可操作的日常动作(20-40字,"让Agent做X",非抽象建议)。HTML 用 💡 前缀 + 浅色背景框。
 
-**引子=标题。要短、直击痛点、大白话。**
-- ❌ "配色选了又改，改了又选，间距差一点界面就不像正经产品……"（太长）
-- ✅ "小白也能用AI出设计稿"（极简，一句话）
-- **引子就是标题本身**，不再单独写长引子+标题两行
-- 核心原则：**死抠目标用户的痛点，不要泛泛而谈**
-- 不要针对特定职业群体（如"设计师"），除非目标用户就是设计师
-- 引子即标题，不再单独写长引子
+### 第3步 分页 + 尺寸 + 平台
+完整卡片 = 封面 + N 张正文 + 结尾页。每张正文 = 大纲一条,50-150字。用户可合并/拆分。
 
-**注意区分内容类型：**
-- 分享推荐他人文章 → 引子体现"推荐"立场，非自夸
-- 原创内容 → 引子可用自身成果背书
+**平台张数上限(提前确认):** 小红书 18 / 朋友圈 9 / 公众号 不限 / 微博 18。超上限 → **合并非删减**(短/相近两条合一,各保留标题+正文+💡)。
 
-**⚠️ 作者信息必须核实，绝不编造。** 标题必须用中文。
+**尺寸预置:** xiaohongshu-v(1080×1440 小红书竖)/ xiaohongshu-s(1080×1080 方)/ wechat-cover(900×383 公众号封面)/ wechat-moments(1080×1080 朋友圈)。
 
-### 内容页结构（每张内容卡必须有3层）
+### 第4步 生成 HTML(基准卡先行)
+核心:AI 直接写完整 HTML(内联样式),不依赖外部 CSS。加载 DESIGN_TEMPLATE 作设计上下文。
 
-每张内容页必须包含：
+**⚠️ 先生成基准卡(card-01封面 + card-02 第一张内容),用户确认 HTML 风格后再批量。**
 
-1. **标题**：精炼的要点（如"永远先写计划"）
-2. **要点**：3-5句精简的话，每句独立一行（不是长段落！）
-3. **💡 实战场景句**：一句具体的、可操作的日常场景
+每张:加载 DESIGN_TEMPLATE → 按其色板/字体/排版生成 → 独立 .html,viewport 对应尺寸 → 命名按 HTML_PATTERN。
+HTML 要求:完整 `<!DOCTYPE html>`、Google Fonts(含 Noto Serif SC 中文)、样式内联 `<style>`、viewport 固定 `overflow:hidden`、中文优先排版。
 
-```
-标题：永远先写计划
-有想法就先写计划，不要直接开干
-先让Agent出计划，再让它执行
-80%时间在规划，20%在执行，反过来就对了
-💡 让Agent改代码前，先让它输出实施计划，确认后再动手
-```
+### 第5步 预览(用户确认 HTML 后再截图)
+**⚠️ 不要在用户确认 HTML 前生成截图!**
+通用方式:`screenshot.py` 截图基准卡 2-3 张抽样 → 发用户确认风格。(IM 对话型 agent 环境的文件服务器预览见 `references/im-agent-env.md`)
+❌ 一口气全生成+截图才给看 ✅ 生成→抽样截图→用户确认→再批量
 
-**场景句要求：**
-- 必须是具体动作（"让Agent做X"），不是抽象建议（"要善于利用Agent"）
-- 一句话，20-40字
-- 起到"看了就想试"的作用
-- 在 HTML 中用 💡 前缀 + 浅色背景框呈现，视觉上与正文区分
+### 第6步 修改/确认
+用户审阅可要求修改 = 重写该张 HTML → 重截图 → 再预览。用户说"OK/确认"才进下一步。
 
-### 第3步：分页 + 选尺寸 + 平台适配
+### 第7步 定版+截图
+用户确认后,最终 HTML + PNG 存到 OUTPUT_DIR。HTML 按 HTML_PATTERN,PNG 放 PNG_SUBDIR(跟随 stem)。**定版立即保存,不等不拖。** 版本管理用新目录避免覆盖。
 
-- 完整卡片 = 封面 + N张正文 + 结尾页
-- 每张正文 = 大纲一个条目，50-150字
-- 用户可合并/拆分
+## 卡片设计系统(布局规则)
+配色/字体由 DESIGN_TEMPLATE 决定。布局规则通用:
 
-**平台图片上限（必须提前确认目标平台！）：**
+- **封面页**:充分利用画布,像杂志封面饱满。装饰 3-4 个(大号半透明背景字+角标+底部色条+几何)。⚠️ **封面不能复用内容卡 `.card` flex 布局**(内容卡有 card-number 占位,封面没有 → flex 子元素被推中间)。用独立 CSS 类,`position:absolute` 铺满。内容从上展开:badge→title→accent-line→subtitle。
+- **内容卡(单点)**:大号 card-number(**衬线体!**)、标题、accent-line、正文(精简大字)、💡框。⚠️ **card-number 必须衬线体(Playfair Display/Georgia/serif),不用等宽体(JetBrains Mono)**——font-family 是 monospace 一定错。序号大小全卡一致(grep `font-size` 对比 `.card-number`,不用 vision 判字号)。
+- **合并卡(两条合一)**:上下两栏各~50%,色条/细线分隔,各标题+正文+💡,字号比单点略小(标题 64-72 vs 88-96,正文 28-32 vs 36-40)。prompt 标 `MERGED — TWO POINTS` + upper/lower split。
+- **结尾页**:居中金句+attribution+来源,半透明引号装饰。
+- **章节标签(WHY/WHAT/TOOLS/HOW)**:英文大写,边缘标注(编号下/右上角)14px。❌ 不放标题文本里 ❌ 不单独成页。分组由用户决定,不计入总张数。
+- **配色**:严格遵循 DESIGN_TEMPLATE。❌ 把 Text 色当背景 ❌ 设计系统无的深色底。先读 DESIGN.md,不确定用 Surface 色。
+- **中文字体必须引入**(Google Fonts 加 Noto Serif SC 700/900),否则 fallback 系统字体风格不统一。
+- **DESIGN.md 是 AI 上下文,不是 CSS**。AI 按它写内联 `<style>`,不需外部 CSS。
 
-| 平台 | 最大张数 | 备注 |
-|---|---|---|
-| 小红书 | 18张 | 超出需合并或拆两条笔记 |
-| 朋友圈 | 9张 | 极度精简 |
-| 微信公众号文章 | 不限 | 全放都行 |
-| 微博 | 18张 | 同小红书 |
+## ⚠️ 协作纪律(通用化提炼)
 
-**超出平台上限时：合并而非删减**
-- 把内容短/主题相近的两条合到同一张图的上下两栏（合并卡）
-- 每条仍保留独立标题+正文+💡场景句，只是共享一张图
-- 不要删内容！用户明确说"不是删减"
-- 合并优先级：内容短的优先合并、主题相近的优先合并
+### delegate_task 批量生成必须附基准卡源码
+问题:delegate_task 让子 agent 各写 HTML,理解差异 → 字体/间距/装饰不一致。
+✅ 先确认基准卡(card-02)风格 → 后续每批 prompt **附基准卡完整 HTML 源码** + `CRITICAL: strictly match the reference template, copy CSS verbatim, only change text`。AI 仍负责设计决策,基准卡是一致性锚点。
+❌ 只描述规范不附源码 → 子 agent 自由发挥 ❌ Python 模板填变量 → 死板(用户拒绝,已删除)
 
-**预置尺寸：**
+### 用户说"确认/归档/覆盖/删/移" → 直接执行,不反问
+用户的"确认"是确认他自己的指令,不是问你。**先执行再汇报。**
+❌ "确认执行吗?" ✅ 立刻 mv/cp → "已归档到X"
+但:用户只指出问题没要求重做时,**先问"要重做吗?"再动手**(别多此一举重新生成)。
 
-| 名称 | 像素 | 比例 | 平台 |
-|---|---|---|---|
-| xiaohongshu-v | 1080×1440 | 3:4 | 小红书竖图 |
-| xiaohongshu-s | 1080×1080 | 1:1 | 小红书方图 |
-| wechat-cover | 900×383 | 2.35:1 | 公众号封面 |
-| wechat-moments | 1080×1080 | 1:1 | 朋友圈 |
+### 找文件/多版本不过度分析
+快速列候选,不启动 vision/HTML 解析多轮对比。用户说"这版不是最新"→ 直接问哪个是定版,别翻遍目录。
 
-### 第4步：AI 生成 HTML 草稿
-
-**核心：AI 直接写完整 HTML（含内联样式），不依赖外部 CSS。**
-
-**⚠️ 先生成基准卡（card_01封面 + card_02第一张内容卡），用户确认HTML风格后再批量生成其余卡片。**
-
-生成每张卡片时，Agent 必须：
-
-1. 用 `skill_view` 加载本 skill 的 `references/agentic-design.md`（设计系统规范）
-2. 按设计系统的色板、字体、排版规范生成 HTML
-3. 每张卡片独立一个 `.html` 文件
-4. 固定 viewport 对应所选尺寸
-5. 命名：`card_01.html`、`card_02.html` ...
-
-**HTML 要求：**
-- 完整 `<!DOCTYPE html>` 文档
-- Google Fonts 引入（Playfair Display / Inter / JetBrains Mono / Noto Serif SC）
-- 所有样式内联（`<style>` 标签），不依赖外部 CSS
-- viewport 固定尺寸，`overflow: hidden`
-- 中文优先排版
-
-### 第5步：预览（用户确认HTML后再截图）
-
-**⚠️ 2026-06-11 用户强调：不要在用户确认HTML之前就生成截图！**
-
-预览方式（按优先级）：
-
-**方式1：HTTP文件服务器（推荐，多卡片时必用）**
-- 在 `/tmp` 下创建临时目录，用 `ln -s` 软链接指向 `output/` 目录（这样用户浏览器能同时看到所有项目）
-- 启动 `python3 -m http.server 8899` 在临时目录
-- 获取公网IP：`curl -s4 https://api.ipify.org`（⚠️ 远程VPS，hostname -I是内网IP）
-- 用户在手机浏览器打开链接查看HTML源码
-- 用完关掉：`kill $(lsof -ti:8899)`
-- **不要把成品cp到/tmp再起服务器**，用symlink引用成品目录，避免两份文件不同步
-- 用户确认HTML OK后，再批量截图
-
-**方式2：截图抽样（仅2-3张时）**
-- 用 `scripts/screenshot.py` 截图基准卡
-- 发送2-3张抽样给用户确认风格
-
-```bash
-python scripts/screenshot.py --files card_01.html card_02.html ... --output ./preview/
-```
-
-**❌ 错误：一口气生成所有HTML + 截图，然后才给用户看** → 用户说"我没确认好html之前不要生成截图啊"
-**✅ 正确：生成HTML → 启文件服务器 → 用户在浏览器看HTML源码 → 确认OK → 再批量截图**
-
-### 第6步：用户修改/确认
-
-用户审阅后可要求修改。修改 = AI 重新写该张 HTML → 重新截图 → 再预览。
-用户说"OK/确认"才进入下一步。
-
-### 第7步：生成正式版
-
-用户确认后，将 draft 文件复制为 final：
-- `card_01_draft.html` → `card_01_final.html`
-- 截图输出 `card_01_final.png`
-
-全部输出到 **skill output 目录**（`~/.hermes/skills/creative/text-to-card/output/YYYYMMDD-主题/`），**绝对不要用 /tmp**（重启丢失）。
-
-**⛔ 不要存到 `~/.openclaw/workspace/output/`！** openclaw 和 Hermes 无关。
-
-## 版本控制
-
-成品目录有本地 git 版本管理，远程仓库：**kelegele/ai-creative-toolkit**
-
-每次项目定版后 commit + push：
-```bash
-cd ~/.hermes/skills/creative/text-to-card
-git add -A
-git commit -m "定版: YYYYMMDD-主题"
-git push
-```
-
-## 文件结构
-
-```
-text-to-card/
-├── SKILL.md                        # 本文件
-├── references/
-│   ├── agentic-design.md           # Agentic 设计系统规范
-│   └── matt-van-horn-25-tips.md    # 首次实战的25条完整内容（含标题/正文/场景句）
-├── templates/
-│   └── reference-card-single.html  # 用户确认的基准卡HTML（delegate_task一致性锚点）
-└── scripts/
-    ├── screenshot.py               # Playwright 截图工具
-    └── gen_cards.py                # [已废弃] Python模板批量生成，用户拒绝
-```
-
-## ⚠️ 教训与陷阱
-
-### ⚠️ 章节标签（WHY/WHAT/TOOLS/HOW等）：边缘标注，不占页
-
-- 章节标签用英文大写，显示在卡片边缘（如编号下方或右上角），小字（14px JetBrains Mono）
-- **标签不要放进标题里**（❌ "WHY·标题" / ✅ 标题单独，标签边缘标注）
-- **不要单独为章节做一张卡片**（浪费页数）
-- 章节分组由用户决定，Agent先提议分组方案
-- 计算总张数时，章节卡不计入（标签是装饰不是独立页）
-
-### ⚠️ 工具/产品类内容的大纲注意事项
-
-- 内容涉及工具/产品介绍时，**必须包含用户当前最常用的工具**（如Claude Code、Codex等），不要遗漏
-- 不相关的专业工具不要硬塞（如面向非设计师的内容不要包含Figma等专业设计软件）
-- 工具分组按使用场景（桌面Agent vs 专用工具），不要按厂商或字母排序
-
-### ⚠️ 内容卡序号大小必须一致
-- 2026-06-09 用户反馈 card 2-7 的数字序号（左上角"02""03"…）比其他卡片明显小
-- HTML 源码中 card-number font-size 应与基准卡一致（如 96px），不能不同批次用不同字号
-- 排查时：直接用 `grep font-size` 对比各卡片 HTML 的 `.card-number` 样式
-- **教训**：不要用 vision 分析图片来判断字号问题，直接看 HTML 源码的 CSS，更准确
-- **⚠️ 2026-06-10 用户确认：card-number 必须用衬线体（Playfair Display / Georgia / serif），不用等宽体（JetBrains Mono）**。之前所有版本都误用了 monospace，用户从手机重发衬线体截图才确认。如果 card-number 的 font-family 是 `JetBrains Mono, monospace`，一定是错的。
-
-### ⚠️ 用户说"归档"/"确认"/"删"/"移" → 直接执行，不要问
-- 用户说"归档" → `mv` 或 `cp` 到归档目录，**不要问"归档到哪"或"要删吗"**
-- 用户说"确认" → 执行确认动作，不要反问"确认执行吗？"
-- 用户说"覆盖" → 直接覆盖，不要再说"这会覆盖旧版，确认？"
-- **用户的"确认"是确认他自己的指令，不是在问你"你确认吗？"**
-- **先执行再汇报结果**，不是先汇报方案等确认再执行
-- ❌ 错误：用户说"移动覆盖过去吧，确认" → Agent还发clarify问"确认执行？" → 用户暴怒（2026-06-09 实战）
-- ❌ 错误：用户说"归档" → 发3轮 clarify/确认问题 → 用户暴怒
-- ✅ 正确：用户说"归档" → 立刻 mv → 告诉用户"已归档到X"
-- ✅ 正确：用户说"移动覆盖过去吧，确认" → 立刻 cp → 告诉用户"已覆盖18张到X"
-
-### ⚠️ 内容卡正文要精简，不要长篇大论
-- 用户2026-06-11纠正：内容卡正文不要长段落，改为3-5句精简的话，每句独立一行
-- 字体要大：正文用42-48px（不是38px）
-- 每句话之间换行（HTML用多个`<span class="body-line">`）
-- 详细内容留给后续文案/配文环节，卡片上只放要点
-- ❌ 错误：写一段150字的长段落
-- ✅ 正确：4-5句精简短句，每句独立一行，一目了然
-
-### ⚠️ 找文件时不要过度分析
-- 用户问"找到最新版的X"或"看看Y的某个细节" → 快速搜索 + 列出候选，不要启动 vision 分析、HTML 源码解读、多轮对比
-- **先问再查**：如果搜索结果和用户预期不符（"这版不是最新的"），立刻问用户确认，不要自己翻遍所有目录
-- ❌ 错误：用户说序号小 → 花 5 轮 vision 分析 + HTML grep + 截图对比，最后发现看的根本不是最新版
-- ✅ 正确：用户说序号小 → 先确认"看的是哪一版？" → 对的版本/文件 → 再分析
-
-### ⚠️ 最大陷阱：delegate_task 生成风格不一致
-
-**问题**：用 delegate_task 让不同子agent各自写 HTML，每个子agent对设计系统的理解不同，导致：
-- 不同批次的卡片数字字体不同（Playfair vs JetBrains Mono）
-- 布局间距不同
-- 装饰元素风格不同
-- 甚至有的卡片漏掉序号
-
-**根因**：每个子agent独立解读 prompt 中的设计规范，细微理解差异放大为视觉不一致。
-
-**✅ 正确做法：delegate_task + 附带参考HTML源码**
-1. 先生成第一张内容卡，用户确认风格OK（成为"基准卡"）
-2. 后续每批 delegate_task 的 prompt 中**附带基准卡的完整 HTML 源码**
-3. Prompt 中明确写 `CRITICAL: You MUST strictly match the HTML structure, CSS styles, fonts, and layout of the reference template below. Do NOT invent your own styles. Only change the text content.`
-4. 把参考 HTML 完整贴在 prompt 中（不是描述，是源码）
-5. 这样所有子agent都以同一张卡的 CSS 为基准，风格100%一致
-
-**Prompt 示例**：
-
-## 内容格式偏好（2026-06-11）
-
-飞栗要求：
-- **正文用精简要点+大字换行**，不要长段落。用 `.body-line { display: block; margin-bottom: 12px; }` 包裹每句话，字号44px，行高1.7
-- **章节标签**（WHY/WHAT/TOOLS/HOW）独立显示在卡片边缘（编号下方），用 JetBrains Mono 14px #9CA3AF，绝对不放在标题文本里
-- **封面/结尾页**用absolute定位铺满画布，不用内容卡内边距布局。含半透明装饰大字、底部footer、两段式横条
-- 面向非设计师的内容：不包含Figma等专业设计软件。UI设计=APP/软件UI设计稿
-- **内容规划流程**：先选题→确认大纲→逐张展开正文+场景句→用户确认基准卡→批量生成，每步都要确认
-
-```
-Generate 3 HTML files. CRITICAL: You MUST strictly match the reference template below.
-
-REFERENCE TEMPLATE (the approved style — copy CSS verbatim):
-```html
-<!DOCTYPE html>
-<html>...（贴基准卡完整HTML）...</html>
-```
-
-CARDS:
-1. Write to /tmp/xxx/card_03.html
-   Number: "03", Title: "...", Body: "...", Tip: "..."
-```
-
-**❌ 错误做法1（v0.5 之前）**：delegate_task 只描述设计规范，不附源码 → 子agent自由发挥
-**❌ 错误做法2（v0.6 尝试）**：Python 模板填变量 → 用户明确拒绝（"不能用python写，太糟糕了"）
-**✅ 正确做法**：AI 写 HTML，但必须附带基准卡源码约束风格一致性
-
-**AI 仍然负责设计决策**（选字体、定字号、配色方案），基准卡提供的是一致性锚点，不是取代AI设计。
-
-### Python 模板填变量 = 丑（仅限手工拼接简单变量）
-- v0.1-0.2 时用 Python 简单字符串拼接 HTML（`<div>{title}</div>`），效果差强人意 → 已废弃
-- v0.3-0.5 改为 AI delegate_task 直接写完整 HTML → 风格不一致
-- v0.6 尝试 Python f-string 模板批量生成 → **用户明确拒绝**（"不能用python写，太糟糕了"）
-- v0.7 最终方案：**AI 写 HTML + 基准卡源码约束一致性**（delegate_task 附带参考HTML）
-- Python 仅用于 Playwright 截图，不参与 HTML 生成
-
-### 用户确认的文案/配文必须立即更新workspace文件
-- 用户在聊天中发回修改后的文案（如"以上是我确认的文案"），必须**立即**将确认版写入workspace对应的配文文件
-- ❌ 错误：workspace里仍是AI初稿，用户确认的最终版只存在于聊天记录中
-- ✅ 正确：用户确认后马上 `write_file` 更新配文.txt，确保workspace始终是最新确认版
-- 后续查阅配文时直接读workspace文件，不会拿到过时内容
-
-### 不要多此一举重新生成
-- 如果用户只是指出风格不一致但没要求重做，**先问清楚再行动**
-- 正确做法：先确认「要重做吗？」再动手
-- **版本管理**：每次生成用新目录（如 cards18/ vs cards18v2/），避免覆盖可回退
-- **最终版判定**：以用户确认的版本为准（如用户说"最多18张"，则18张的版本是最终版，27张的是中间版），不要假设张数最多的就是最终版
-
-### 输出路径：skill output = 主目录，openclaw = 备份
-
-**⚠️ 主工作目录（成品存放地）**：`~/.hermes/skills/creative/text-to-card/output/YYYYMMDD-主题/`
-**⛔ openclaw不是成品目录，永远不要把成品放在 `~/.openclaw/workspace/output/`！**
-
-**2026-06-09/06-12 飞栗多次纠正**：成品必须放在 skill output 目录，openclaw 与 Hermes 无关，不要混用。HTML源文件和PNG都要保存到成品目录。
-
-**定版流程**：用户说"OK/确认/定版" → **立即**将最终 PNG/HTML 保存到 skill output 目录。不要等，不要"之后再整理"。
-**❌ 2026-06-09 血泪教训**：用户确认了衬线体版本为定版，但该版本从未持久化。下次会话时服务器上所有版本都不是用户要的，只能让用户从手机重发截图（JPG画质低于原始PNG）。
-
-**⚠️ /tmp 禁止存放最终产物！** /tmp 重启后丢失。
-
-目录名格式：`YYYYMMDD-主题`，如 `20260612-ai-ui-design/`
-
-子目录结构（HTML在项目根，PNG在preview子目录）：
-- `card_01.html ~ card_XX.html` — HTML源文件
-- `preview/01.png ~ XX.png` — PNG截图
-- `小红书配文.txt` — 文案（如有）
-- `archive/` — 废弃/未完成项目
-
-### ⚠️ 多版本混乱：如何找到真正的"定版"
-
-当存在多个版本目录时（如 `20260608-agentic-18cards/`、`20260612-ai-ui-design/`），按以下顺序判断：
-1. **skill output 目录** = 最新项目目录（按日期排序）
-2. **/tmp 下目录** = 临时文件，随时可能丢失
-3. **openclaw workspace** = 已废弃，不要作为成品目录
-
-**⚠️ 如果用户说"这版不是最新的"，不要花时间在所有目录里翻找分析，直接问用户最新版在哪。**
-- ❌ 错误：花 10+ 轮工具调用搜遍所有目录 + vision 分析每个版本的字体差异
-- ✅ 正确：快速列出所有目录和版本摘要，问用户"哪个是你的定版？"，用户一发截图立刻知道对不上
-
-### ⚠️ 定版丢失的恢复策略
-
-当服务器上所有版本都不是用户确认的定版时（2026-06-09 实战）：
-
-1. **快速列出版本摘要** → 问用户哪个对，2轮内搞定
-2. **都不对 → 让用户从手机/电脑重发截图**（用户手机里通常有截图存档）
-3. **用户截图是JPG（手机截屏），比原始PNG分辨率低**，发公众号可能不清晰——告知用户
-4. **收到截图后从 image_cache 保存**：用户在微信发图后，图片缓存在 `/root/.hermes/image_cache/img_xxx.jpg`，直接 `cp` 到目标目录
-5. **封面如果确认正确，单独保留**，不要一起替换（用户2026-06-09明确说"封面保留"）
-6. **旧版本归档清理**：用户要求归档时，`cp -r` 旧目录到 `/tmp/archive_xxx/` 并写 README.txt 标注时间和版本信息
-7. **⚠️ 用户说"存到正确目录"时**：成品应存到 `~/.hermes/skills/creative/text-to-card/output/<project>/`（skill output目录），而非 openclaw workspace。openclaw只是归档副本，skill output才是主工作目录。2026-06-09 飞栗纠正："成品不要放在openclaw，放到该放的目录里"
-
-### 封面标题必须用确认的原文，AI 不得改写
-- 第2步用户确认了封面引子文案后，第4步生成 HTML 时必须逐字使用确认文本
-- ❌ 错误：AI 自行提炼标题（如把引子改成"Agentic 工程技巧"）
-- ✅ 正确：prompt 中写明 EXACT title text，delegate_task 时强制传递
-- **Prompt 技巧**：在 delegate_task 的 CONTENT 段用 `EXACTLY this text` 标注，加 `do NOT change the wording`
-### 封面标题必须用确认的原文，AI 不得改写
-
-### ⚠️ 选题和目标受众要和用户对齐
-- 用户可能明确指定选题方向、目标受众、工具范围，不要自行发挥
-- 例：用户说"不用写怎么设计，重点写怎么用桌面AI Agent"→不要加设计理论内容
-- 例：用户说"目标用户是不懂设计的人"→语言要面向小白，不要假设读者懂设计术语
-- 例：用户说"专业设计软件不要"→排除Figma等专业工具，只保留Agent/产品类工具
-- 先列出大纲让用户逐条确认，不要自己决定取舍
-
-### 用户可能微调封面文案
-- 确认后用户仍可能微调（如去掉"分享｜"前缀），每次修改重新生成封面即可
-- 不要抗拒小改动，直接改 prompt 重新 delegate_task
-
-### 章节标签（如WHY/WHAT/TOOLS/HOW）：边缘装饰，不占页
-
-- 章节标签显示在卡片边缘（如右上角或右侧），小字（14px），作为视觉分类标注
-- ❌ 不要单独为章节做一张卡片（浪费页数）
-- ❌ 不要把章节标签放进标题文本里（如"WHY · 不是设计师"是错的）
-- ✅ 章节标签独立于标题，用不同颜色/字号/位置区分
-
-### 内容页有两种布局：单点卡 vs 合并卡
-
-**单点卡（常规）：** 一张图一个要点，标题+正文+💡居中排布
-**合并卡（两条合一）：** 内容短/主题相近的两条合到同一张图
-
-合并卡布局规范：
-```
-┌──────────────────────────┐
-│ 编号 (左上)    页码 (右上) │
-│                          │
-│ ▎ 标题A（中等衬线）        │
-│ ▎ 正文A（Inter）           │
-│ ▎ 💡 场景句A              │
-│                          │
-│ ───── 分隔线/色条 ─────   │
-│                          │
-│ ▎ 标题B（中等衬线）        │
-│ ▎ 正文B（Inter）           │
-│ ▎ 💡 场景句B              │
-│                          │
-│ ▬ 底部装饰条 ▬            │
-└──────────────────────────┘
-```
-
-- 上下两栏各占约50%高度，用 `#F6F6F1` 色条或细线分隔
-- 每栏字体比单点卡略小（标题64-72px vs 单点88-96px，正文28-32px vs 36-40px）
-- 每栏有独立💡场景句框，保持视觉一致性
-- 合并卡的 prompt 中标注 `MERGED — TWO POINTS` + `upper/lower split`
-
-### ⚠️ 大纲阶段：不要自作主张加戏
-- 用户给了选题标题，就按标题理解，**不要自己加限定语/目标人群/技术栈**
-- ❌ 错误：用户说「如何用AI出符合设计规范的UI图」→ Agent自己加了"公众号卡片+小红书卡片"的限定
-- ❌ 错误：Agent自己判断"重点写怎么设计"→ 用户纠正"不用写怎么设计，重点写怎么用桌面AI Agent"
-- ✅ 正确：先展示大纲方向，让用户纠正范围，而不是自己补全上下文
-
-### ⚠️ 目标受众要提前确认
-- 用户没说目标读者时，不要假设是"设计师"或"开发者"，先问
-- 同一个选题，面向设计师 vs 面向非设计师，内容完全不同
-- ✅ 正确：选题确定后第一件事确认"面向谁？"
-
-### ⚠️ 工具范围：先问再列，不要自作主张排除
-- ❌ 错误：Agent列了一堆专用设计工具，漏了用户日常在用的Claude Code/Codex
-- ✅ 正确：问用户"要带上哪些工具？有没有你常用但可能遗漏的？"
-
-### ⚠️ 大纲太杂时让用户自己挑
-- 如果Agent列了太多条目（>15），用户觉得"太杂了"，让用户自己curate
-- 用户挑完的列表就是定稿，不要试图"帮你补全"或"我觉得这个也应该加"
-- 用户可能有自己的信息来源和判断，Agent的补充往往是多余的
-
-### ⚠️ 大纲太杂时让用户自己挑
-- 用户给你文章拆卡片，期望的是完整拆解，不是你的"精华版"
-- ❌ 错误：22条技巧合并成13条（用户原话："22条分别是啥？只有13条内容吗？"）
-- ✅ 正确：原文有多少条就拆多少条，每条独立一张卡片
-- 如果条目确实太多（>30），先展示完整列表让用户决定是否合并，不要自作主张
-
-### 文件命名规范
-- 成品文件统一命名：`日期-主题-card-序号`（如 `20260606-Agent技巧-card-01.png`）
-- 日期用项目完成日期，主题2-4个字
-- HTML源文件和PNG同名，仅后缀不同
-- zip打包命名：`日期-主题-N张卡片.zip`
-
-### 多文件交付用临时文件服务器
-- 当成品文件较多（5张以上）时，不要逐张发微信图片（慢+限流）
-- 打包为 zip → 起临时 HTTP 文件服务器 → 发链接给用户
-- 流程：`cd /tmp/cards_final && zip 日期-主题-N张卡片.zip *.png` → `python3 -m http.server 8899` → 发 `http://<ip>:8899/zip文件名`
-- 用完即关：`kill $(lsof -ti:8899)`
-- **⚠️ 远程VPS：用 `curl -s4 https://api.ipify.org` 获取公网IP，不要用 `hostname -I`（那是内网IP）**
-- **文件服务器也可用于HTML预览**：启动在HTML目录，用户在手机浏览器直接看HTML源码
-- **仍可发几张抽样预览图**，让用户快速看效果，zip 链接作为完整交付
-
-### ⚠️ 文件服务器：启动前必须验证端口+工作目录
-
-**2026-06-13 血泪教训**：用户打开链接404，Agent反复查端口、重启，完全没想过工作目录不对。
-
-**正确流程**：
-1. `lsof -ti:8899` 检查是否有残留进程 → 有就先kill
-2. 启动后**必须**验证工作目录：`ls -la /proc/$(lsof -ti:8899)/cwd`
-3. 确认指向项目目录（如 `output/20260613-xxx/`），不是父级或空目录
-4. `curl -s -o /dev/null -w "%{http_code}" http://localhost:8899/card_01.html` 验证200
-5. 以上全部通过才告诉用户链接可用
-
-**端口规则**：8899是文件服务器专用端口，禁止随意换端口（严格防火墙控制）。需要新端口必须先跟飞栗确认开通。
-
-### ⚠️ workspace→skill同步时不要带仓库顶层结构
-
-仓库结构是 `skills/tools/assets` 三层，但skill目录**只应该有skill本身的内容**（SKILL.md、scripts、templates、references、output）。
-
-- ❌ 错误：`cp -r ~/workspace/ai-creative-toolkit/* ~/.hermes/skills/creative/text-to-card/` → 把仓库的 `skills/`、`tools/`、`assets/`、`README.md` 全拷进去了，skill变成双重嵌套
-- ✅ 正确：只同步 `skills/text-to-card/` 下的内容到skill目录根
-
-```bash
-# 正确的同步方式
-SRC=~/workspace/ai-creative-toolkit/skills/text-to-card
-DST=~/.hermes/skills/creative/text-to-card
-cp $SRC/SKILL.md $DST/
-cp -r $SRC/references $DST/
-cp -r $SRC/scripts $DST/
-cp -r $SRC/templates $DST/
-```
-
-**验证**：同步后检查 `ls $DST/`，不应出现 `skills/`、`tools/`、`assets/`、`README.md`。
-
-### ⚠️ 修改页码时用精确sed，不要blanket替换
-
-修改 page-indicator 总张数时，必须精确匹配 `page-indicator` 上下文，不能用 `sed 's|16|15|g'` 暴力替换（会把CSS里的 `margin-top: 16px` 等也改掉）。
-
-```bash
-# ❌ 错误：暴力替换，误伤CSS
-sed -i 's|16|15|g' *.html
-
-# ✅ 正确：精确匹配page-indicator内容
-sed -i 's|\([0-9]*\s*/\s*\)16|\115|g' card_*.html
-```
-
-**生成时就该注意**：page-indicator的总张数要和实际文件数一致，结尾页装饰大字同理。
-
-### http.server + 中文文件名 = 浏览器打不开
-- `python3 -m http.server` 启动的文件服务器，目录里如果有中文文件名（如 `Agent技巧-card-03.html`），浏览器直接访问会404
-- 需要手动 URL encode（`%E6%8A%80%E5%B7%A7`）才能打开，用户体验极差
-- ✅ 解决方案：`cp` 到 `/tmp/` 用纯 ASCII 文件名再启动 http.server，或启动前批量 `ln -s` 做英文符号链接
-- **最佳实践**：成品 HTML/PNG 直接用英文命名（`card-01.html`），中文只在目录/zip名体现
-
-### 微信发图：中文路径会失败
-- `send_message` 的 `MEDIA:` 前缀**不支持含中文的文件路径**（如 `AI自媒体/`），图片静默发送失败（API 返回 success 但用户收不到）
-- ✅ 必须先 `cp` 到 `/tmp/` 用纯 ASCII 文件名，再发：`MEDIA:/tmp/card-03.png`
-- 每次发图前检查路径，有中文就走 copy → /tmp → send 流程
-- 2026-06-09 实战：`MEDIA:/root/.openclaw/workspace/output/AI自媒体/...png` 连发4张全部失败，copy 到 /tmp 后成功
-- **注意**：失败时 API 仍返回 `success: true`，不会报错。必须通过用户确认"收到了吗？"来验证
-
-### 微信发图限流应对
-- 连续发 3-4 张图片会触发 iLink 限流（ret=-2）
-- 方案：每张图之间 sleep 15-30s，或改用文件服务器链接交付
-- 优先用文件服务器交付，抽样发 2-3 张预览即可
-- **最佳策略**：发 2-3 张抽样预览 + zip 打包链接，不要逐张发
-
-### 批量生成内容卡片的流程（v0.7 推荐流程）
-- **核心方法**：delegate_task 批量生成，但每批 prompt 必须附带基准卡完整 HTML 源码
-- **基准卡**：先生成 card_02（第一张内容卡），用户确认风格后，以其 HTML 作为所有后续卡片的参考模板
-- **Prompt 模板**：每批 delegate_task 中贴入基准卡完整 `<style>` + 结构，要求 `copy CSS verbatim`
-- **合并卡处理**：合并卡需要说明"merged layout"并给出缩放后的字号（如标题56px vs 单点88px）
-- **封面/结尾页**：可以单独 delegate_task（不需要基准卡），因为布局完全不同
-- 所有 HTML 生成完毕后，一次性调用 `screenshot.py --files` 截图全部 PNG
-
-### ⚠️ 旧流程笔记（历史版本，仅供参考）
-- v0.5 及之前：delegate_task 批量生成，无参考源码 → 风格不一致
-- v0.6：Python gen_cards.py 模板 → 用户拒绝（"太糟糕了"）
-- v0.7：delegate_task + 基准卡源码 → 用户确认OK
-
-### 中文字体必须引入
-- Google Fonts 引入时加 `Noto Serif SC`（700,900），中文标题才能渲染美观
-- 否则中文标题会 fallback 到系统字体，风格不统一
-
-### 封面不能空，也不能"缩在中间"
-- 封面必须充分利用 1080×1440 画布，像杂志封面一样饱满
-- 空白 ≠ 留白，大面积空 = 不专业
-- 技巧：大号背景装饰字（如巨大半透明编号）、标签徽章、底部信息栏、几何装饰元素
-- 装饰元素不要太多，3-4个就够（背景大字+角标+底部色条+点缀几何）
-
-**⚠️ 封面"缩在中间"bug：**
-- 根因：封面复用了内容卡的 `.card { padding: 80px 88px; display: flex; flex-direction: column; }` 但内容卡有 card-number（96px）占位，封面没有，导致 flex 子元素被 margin-top 推到中间区域
-- 另一个根因：内容卡 CSS 中有 `.title { margin-top: 64px }` 等间距规则，封面不需要这些但被继承了
-- ✅ 正确做法：封面用独立CSS类（如 `.content { position: absolute; top:0; left:0; right:0; bottom:0; padding: 160px 88px 160px; display: flex; flex-direction: column; }`），不要复用内容卡的 `.card` 类
-- 封面内容应从上方自然展开：badge → title → accent-line → subtitle，利用 `position: absolute` 铺满画布
-
-### 严格遵循设计系统配色
-- 设计系统定义了每个颜色的用途，不可自行发挥
-- 如 Agentic：Surface=#FFFFFF 做背景，Text=#111827 做文字，Primary=#FF5701 做强调
-- ❌ 错误示例：把 Text 色(#111827) 当封面背景 — 这违反设计系统
-- ❌ 错误示例：封面用深色底但设计系统没有定义深色底色
-- ✅ 正确：先读 DESIGN.md，按规范用色，不确定就用 Surface 色
-
-### 设计系统文件是 AI 上下文，不是 CSS
-- `references/agentic-design.md` 是给 AI 读的设计规范，不是给浏览器加载的样式表
-- AI 按 DESIGN.md 的色板+字体+排版规范写内联 `<style>`
-- 不需要外部 CSS 文件
+### 定版立即保存
+用户说"OK/定版"→ 立刻存最终版到 OUTPUT_DIR。不等不拖(教训:确认版未持久化,下次会话丢失)。
 
 ## 小红书配文写作
+卡片做完后通常需要发布文案。
 
-卡片做完后，用户通常需要小红书发布文案。写作要求：
+**风格铁律:** 第一人称(我/我以前)、对话感(像跟朋友聊天,可吐槽)、反 AI 腔(禁"在当今AI时代""让我们一起""助力""赋能""你值得拥有")、口语化(短句为主,偶尔长句制造节奏)。
 
-### 风格铁律
-- **第一人称**：用「我」「我以前」「我花了一晚上」——读者觉得是真人分享
-- **对话感**：像跟朋友聊天，不像写新闻稿。可以吐槽、可以感慨
-- **反AI腔**：禁止「在当今快速发展的AI时代」「让我们一起」「助力」「赋能」「你值得拥有」
-- **口语化**：短句为主，偶尔来句长句制造节奏感
+**结构:** 标题(口语化+痛点/好奇,<25字)→ 开头 1-2 句第一人称引入 → 目录(01/02/03 一行一条)→ 1 句感悟展开 → 行动号召 → 话题标签 5-8 个。
 
-### 结构模板
+**最易犯的错:写得越来越AI。** 就当微信跟朋友说一件事,怎么说怎么写。口述感标志:有转折(后来…)、有口语(确实有点东西)、有省略感。配文交给用户定稿——用户改出的(观点句开头+个人背景关联)比 AI 迭代都好。emoji 由用户决定。
+
+## 依赖 & 截图
+- Playwright + Chromium、Python 3.11+
+- `python scripts/screenshot.py --files card-01.html card-02.html ... --output <OUTPUT_DIR/PNG_SUBDIR>`
+
+## 文件命名
+- HTML:`HTML_PATTERN`(用户确定,默认建议 `card-{NN}.html`),**ASCII**(中文文件名致 http.server 404)
+- PNG:跟随 HTML stem,放 `PNG_SUBDIR`
+- 中文只在目录名/zip 名
+
+## skill 自身结构
 ```
-标题：口语化 + 痛点/好奇心（不超过25字）
-
-开头1-2句：第一人称引入（「说实话我以前也…」「看了一篇XX万阅读的文章才开窍」）
-
-目录列表：01/02/03... 一行一条（方便读者扫）
-
-1句感悟：挑最触动自己的一条展开说
-
-行动号召：收藏/关注/试试看
-
-话题标签：#5-8个相关话题
-```
-
-### ❌ 错误示范
-> AI时代别再当Agent的保姆，学会这几招让它真正变成你的左膀右臂。从写计划到并行会话，从语音输入到Skill复用，每一条都是实战验证过的硬货💡
-
-（排比句+空洞感叹+「左膀右臂」= 典型AI腔）
-
-### ✅ 正确示范
-> 前阵子用AI老是翻车，让它改代码反而改出新问题，写东西也总跑偏。后来看到一篇Matt Van Horn的文章，90万人看过，讲怎么跟Agent协作的。我看完觉得确实有点东西，不是AI不行，是之前用法有问题。
-
-（平淡口述、像跟朋友聊天、没有排比感叹、没有「左膀右臂」等AI惯用语、短句为主、偶尔来句长的制造节奏）
-
-### 用户亲自改写的版本（最接近理想状态）
-> 现在不缺能力强的AI，缺的是AI的驾驭者。
-> 如果你用AI也老是翻车，让它改这个那个反而改出新问题，写东西也总跑偏。前几天在X看到一篇Matt Van Horn的文章，90万人看过，讲怎么跟Agent协作的。
-> ...
-> 这里和我平时用AI Vibe Work的习惯也很相似，我挺认同的。方向盘自己握着，油门交给Agent踩。
-
-**与Agent版本的差异（用户比AI好在哪里）：**
-- 开头换成观点句（"缺的是驾驭者"）而非叙事引入 → 更抓眼球
-- "前几天在X看到" → 比"后来看到一篇"更具体、更真实
-- "改这个那个反而改出新问题" → 口语化程度更高
-- "和我平时…习惯也很相似" → 加入个人背景关联，不是纯推荐
-- 结尾用"我挺认同的"收束个人感受，不是空泛的行动号召
-
-### 最易犯的错：写得越来越AI
-- 第1版偏正式 → 用户说"AI感太重"
-- 第2版加科技博主腔（「兄弟姐妹们」） → 用户说"太AI感"
-- 第3版第一人称但用词华丽 → 用户说"要平淡的口述"
-- **最终秘诀**：就当你在微信跟朋友说一件事，怎么说就怎么写
-- **口述感的标志**：有转折（"后来…"）、有口语（"确实有点东西"）、有省略感（不每句都写满）
-
-## 交付物归档
-
-**成品只存一个目录：**
-
-| 目录 | 用途 |
-|---|---|
-| **成品主目录** | `~/.hermes/skills/creative/text-to-card/output/YYYYMMDD-主题/` | HTML源文件 + PNG截图 都放这里。废弃项目放 `archive/` 子目录 |
-
-**⛔ 不要存到 `~/.openclaw/workspace/output/`！** openclaw 和 Hermes 无关。
-
-**⚠️ 定版必须立即保存到 skill output 目录！** 用户说"确认/OK"后，立刻复制最终版到 `output/<project>/`。HTML源文件和PNG都要保存。
-
-**⚠️ 禁止将最终产物放在 /tmp！** /tmp 重启后丢失。
-
-目录结构：
-
-```
-output/
-├── YYYYMMDD-主题/                 # 活跃项目
-│   ├── card_01.html ~ card_XX.html   # HTML源文件
-│   ├── preview/                      # PNG截图
-│   │   └── 01.png ~ XX.png
-│   └── 小红书配文.txt                 # 发布文案（如有）
-└── archive/                      # 废弃/未完成项目
-    └── YYYYMMDD-主题/
+text-to-card/
+├── SKILL.md
+├── templates/              # 设计模板(DESIGN.md)+ .current 指针
+│   ├── agentic.md          # 内置默认
+│   └── .current
+├── references/
+│   ├── design-md-spec.md   # DESIGN.md 规范(自定义引导)
+│   └── im-agent-env.md     # IM 对话型 agent 环境适配
+├── examples/               # 示例(非主流程)
+│   ├── reference-card-single.html  # 基准卡示例(delegate_task 锚点)
+│   └── matt-van-horn-25-tips.md    # 首次实战的25条完整内容
+└── scripts/
+    └── screenshot.py       # Playwright 截图
 ```
 
-**目录命名规范：`YYYYMMDD-主题`，日期用项目创建日。**
-- 废弃/未完成项目放 `output/archive/`
-- 第1期：`output/20260608-agentic-18cards/`（18 HTML + 18 PNG）
-- 第2期：`output/20260612-ai-ui-design/`（15 HTML + 15 PNG）
-
-## 版本管理与Git工作流
-
-内容创作项目纳入Git版本管理（仓库：kelegele/ai-creative-toolkit）。
-
-### 日常提交流程
-```bash
-cd ~/.hermes/skills/creative/text-to-card
-git add -A
-git commit -m "update: YYYYMMDD-主题 内容更新"
-git push origin main
-```
-
-### GitHub连通性（2026-06-12修正）
-- `api.github.com`（REST API）始终可达，`github.com`（git协议）间歇性超时
-- ⚠️ `.gitconfig`里如果有`insteadOf`重定向到代理，会导致push失败（即使代理本身挂了）
-- 下载大仓库时用`gitp` alias走代理（配置在`~/.bashrc`）
-- push时确保remote URL是`https://github.com/...`而非代理URL
-- **push超时时**：`git -c core.compression=9 push origin main` 压缩级别拉满，提高成功率
-- `git push --dry-run` 瞬间返回，可先验证本地计算是否正常
-
-### 文件服务器预览
-用软链接指向output根目录，启动HTTP服务器：
-```bash
-rm -rf /tmp/ui-design && mkdir -p /tmp/ui-design
-cd /tmp/ui-design && ln -sf ~/.hermes/skills/creative/text-to-card/output output
-python3 -m http.server 8899
-```
-公网IP获取：`curl -s4 https://api.ipify.org`（⚠️ 远程VPS，不要用hostname -I）
-
-### .gitignore
-```gitignore
-__pycache__/
-*.pyc
-node_modules/
-.DS_Store
-output/archive/
-```
-
-## 依赖
-
-- **Playwright**：`pip install playwright && playwright install chromium`
-- Python 3.11+
-
-## 版本控制
-
-text-to-card skill 目录本身是一个 git 仓库，远程为 `kelegele/ai-creative-toolkit`。
-
-- 每次项目完成后 `git add -A && git commit` 提交到 main
-- 新项目产出物（HTML + PNG）自动纳入版本管理
-- `output/archive/` 目录在 `.gitignore` 中排除（废弃项目不入库）
-- **⚠️ VPS的`github.com`（git协议）间歇性超时**，`api.github.com`始终可达。push超时用`git -c core.compression=9 push`，避免反复试
-
-## 用法
-
-用户说"帮我做图文卡片"或"文章转卡片"时触发。
-
-### 内容规划（第1步前置）
-- 用户给出选题后，**直接拆大纲**，不要自作主张加限定/定位/平台说明
-- ❌ 错误：用户说「如何用AI出符合设计规范的UI图」，Agent加一段「选题定位：教读者如何用AI+text-to-card流水线…」→ 用户说「选题定位错了，选题已经给你了」
-- ✅ 正确：选题即标题，直接拆正文条目
-- 选题确认后才进入第2步（封面引子+正文大纲细化）
-
-## 完整实战记录（2026-06-06 首次完整跑通）
-
-**项目：** agentic-22tips（27张小红书图文卡片）
-**文章：** "Every Agentic Engineering Hack I Know" by Matt Van Horn（913K 阅读）
-**设计系统：** Agentic by Open Design（#FF5701 + #FFFFFF + #111827）
-**产出物：** 最终归档到 `workspace/output/AI自媒体/20260606-Agent技巧/`（见下方归档结构）
-
-**时间线：**
-1. 抓取文章 → 提取技巧 → 首轮合并为13条（❌ 用户不满意，要求展开原文全部25条）
-2. 确认封面引子（用户微调：去掉"分享｜"前缀）
-3. 选 Agentic 设计系统（从 open-design.ai 150+系统中选）
-4. 封面单独生成+迭代（v1空→v2标题错→v3过审）
-5. 首轮13张内容页批量生成 → 用户要求加💡场景句 → 重新生成
-6. ❌ 用户要求展开为25条 → 全部重新生成25张内容页+封面+结尾=27张
-7. 文件命名规范化：`20260606-Agent技巧-card-XX`
-8. Playwright 统一截图27张PNG → zip打包+HTTP服务器交付
-8. 临时文件服务器打包交付（zip + HTTP链接）
-9. 生成小红书配文（迭代4版：AI腔→科技博主→口语化→平淡口述→定稿）
-10. 用户要求展开为完整25条 → 全部重新生成27张 → 发现小红书18张上限
-11. 浓缩方案：9对短内容两两合并（上/下分栏），7条长内容单张 → 18张（0删减）
-12. 重新生成18张合并版 + 更新配文 → 定稿
-
-**产出物：** `output/agentic-18cards/`（18 HTML + 18 PNG + 配文.txt + zip）
-
-**关键教训：**
-- ❌ 不要擅自合并原文要点！25条合并成13条被用户驳回，全部重做
-- 封面迭代3次才过审（空→标题错→OK）
-- 配文迭代4次才过审（AI腔是最大陷阱，最终用平淡口述风格）
-- 微信限流在多发图时需 sleep 30-60s
-- **平台上限必须提前确认！** 27张做完才发现小红书只能18张，被迫全部重做
-- 合并而非删减：用户明确说"不是删减"，用上/下分栏合并短内容
-- 合并卡需要专门的 prompt 模板（MERGED — TWO POINTS + upper/lower split）
-- **⚠️ v0.6 核心教训：delegate_task 生成风格不一致！** 不同批次子agent解读设计规范不同，导致字体/间距/装饰不统一。用户投诉"2/3/4图的数字字体不同，11/12/13又不同，17干脆没序号"
-- **⚠️ v0.6→v0.7 转折**：用 Python gen_cards.py 模板尝试统一风格 → 用户明确拒绝（"不能用python写，太糟糕了"）→ 最终方案：delegate_task 附带基准卡完整HTML源码 → 用户确认OK
-- **⚠️ v0.7.2 补充教训：不要多此一举！** 用户指出风格不一致后，Agent自作主张重做了全部18张（v2），但用户说"刚才那一版已经很好了" → **先问"要重做吗？"再动手，避免浪费token和时间**
-- **⚠️ 封面"缩在中间"bug：** 封面不能复用内容卡的 `.card` 类+flex布局（内容卡有96px的card-number占位，封面没有，导致flex子元素被margin推到中间）→ 封面必须用独立CSS类，`position: absolute` 铺满画布
-- **配文交给用户定稿：** Agent可以给初稿，但最终版一定让用户亲自改。用户改出的版本（加入个人背景关联、观点句开头）比所有AI迭代都好。配文emoji由用户决定加不加。
+> 📎 **IM 对话型 agent 环境**(Hermes/OpenClaw/QwenPaw 等)的文件服务器预览、IM 发图、image_cache 取图、成品路径等见 `references/im-agent-env.md`
