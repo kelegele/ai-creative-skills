@@ -2,7 +2,7 @@
 name: text-to-card
 description: Use when turning articles/blog posts into social image card sets (封面+内容卡+结尾) for 小红书/微信/微博. Triggers include 图文卡片, 文章转卡片, 做卡片, 小红书卡片, card generation, article to cards.
 version: 0.9.0
-author: Hermes Agent
+author: Kelegele
 license: MIT
 metadata:
   tags: [content, social-media, xiaohongshu, wechat, html, screenshot, design-system]
