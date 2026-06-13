@@ -13,7 +13,11 @@
 - **Danger:** `#DC2626`
 - **Surface:** `#FFFFFF` — large backgrounds and cards
 - **Text:** `#111827` — body copy
-- **Neutral:** `#FFFFFF`
+- **Neutral scale**(基于 Text `#111827` 的派生灰阶,用于层次,均 on-palette):
+  - `#111827` — Text,正文 / 标题
+  - `#374151` — body 次级
+  - `#6B7280` — subtitle / 次要说明
+  - `#9CA3AF` — page-indicator / section-tag / tertiary
 
 Rules:
 - Favor Primary (#FF5701) for CTA emphasis.
@@ -23,8 +27,9 @@ Rules:
 ## Typography
 
 - **Scale:** 14 / 16 / 18 / 24 / 32 / 40
-- **Families:** primary=Playfair Display, display=Playfair Display, mono=JetBrains Mono
+- **Families:** primary=Playfair Display, display=Playfair Display, body=Manrope + Noto Sans SC(中英混排), mono=JetBrains Mono
 - **Weights:** 100–900 (full range)
+- 中文:标题用 Noto Serif SC(与 Playfair 统一衬线气质),正文用 Noto Sans SC(黑体,配 Manrope)
 - Headings carry style personality; body text optimizes scanability and contrast.
 
 ## Spacing & Grid
