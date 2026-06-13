@@ -472,6 +472,52 @@ CARDS:
 - **文件服务器也可用于HTML预览**：启动在HTML目录，用户在手机浏览器直接看HTML源码
 - **仍可发几张抽样预览图**，让用户快速看效果，zip 链接作为完整交付
 
+### ⚠️ 文件服务器：启动前必须验证端口+工作目录
+
+**2026-06-13 血泪教训**：用户打开链接404，Agent反复查端口、重启，完全没想过工作目录不对。
+
+**正确流程**：
+1. `lsof -ti:8899` 检查是否有残留进程 → 有就先kill
+2. 启动后**必须**验证工作目录：`ls -la /proc/$(lsof -ti:8899)/cwd`
+3. 确认指向项目目录（如 `output/20260613-xxx/`），不是父级或空目录
+4. `curl -s -o /dev/null -w "%{http_code}" http://localhost:8899/card_01.html` 验证200
+5. 以上全部通过才告诉用户链接可用
+
+**端口规则**：8899是文件服务器专用端口，禁止随意换端口（严格防火墙控制）。需要新端口必须先跟飞栗确认开通。
+
+### ⚠️ workspace→skill同步时不要带仓库顶层结构
+
+仓库结构是 `skills/tools/assets` 三层，但skill目录**只应该有skill本身的内容**（SKILL.md、scripts、templates、references、output）。
+
+- ❌ 错误：`cp -r ~/workspace/ai-creative-toolkit/* ~/.hermes/skills/creative/text-to-card/` → 把仓库的 `skills/`、`tools/`、`assets/`、`README.md` 全拷进去了，skill变成双重嵌套
+- ✅ 正确：只同步 `skills/text-to-card/` 下的内容到skill目录根
+
+```bash
+# 正确的同步方式
+SRC=~/workspace/ai-creative-toolkit/skills/text-to-card
+DST=~/.hermes/skills/creative/text-to-card
+cp $SRC/SKILL.md $DST/
+cp -r $SRC/references $DST/
+cp -r $SRC/scripts $DST/
+cp -r $SRC/templates $DST/
+```
+
+**验证**：同步后检查 `ls $DST/`，不应出现 `skills/`、`tools/`、`assets/`、`README.md`。
+
+### ⚠️ 修改页码时用精确sed，不要blanket替换
+
+修改 page-indicator 总张数时，必须精确匹配 `page-indicator` 上下文，不能用 `sed 's|16|15|g'` 暴力替换（会把CSS里的 `margin-top: 16px` 等也改掉）。
+
+```bash
+# ❌ 错误：暴力替换，误伤CSS
+sed -i 's|16|15|g' *.html
+
+# ✅ 正确：精确匹配page-indicator内容
+sed -i 's|\([0-9]*\s*/\s*\)16|\115|g' card_*.html
+```
+
+**生成时就该注意**：page-indicator的总张数要和实际文件数一致，结尾页装饰大字同理。
+
 ### http.server + 中文文件名 = 浏览器打不开
 - `python3 -m http.server` 启动的文件服务器，目录里如果有中文文件名（如 `Agent技巧-card-03.html`），浏览器直接访问会404
 - 需要手动 URL encode（`%E6%8A%80%E5%B7%A7`）才能打开，用户体验极差
