@@ -2,6 +2,20 @@
 
 AI内容创作工具集，包含skill、工具脚本和共用素材。
 
+## 安装
+
+用 `skills` CLI 一键装到 agent 的 skills 目录:
+
+```bash
+# 装单个 skill(把 <skill-name> 换成下面的 skill 名)
+npx skills add https://github.com/kelegele/ai-creative-skills --skill <skill-name>
+
+# 例:装本仓的三个 skill
+npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-card
+npx skills add https://github.com/kelegele/ai-creative-skills --skill harvest-topics
+npx skills add https://github.com/kelegele/ai-creative-skills --skill submit-to-inbox
+```
+
 ## 结构
 
 ```
