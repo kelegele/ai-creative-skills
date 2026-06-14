@@ -7,6 +7,7 @@
 ```
 skills/text-to-card/    # 文章转图文卡片 skill(通用版)
 skills/harvest-topics/  # 素材转选题候选 skill(通用版)
+skills/submit-to-inbox/ # 素材提交(带降级) skill(通用版)
 tools/                  # 独立工具/脚本
 assets/                 # 共用素材/模板
 ```
@@ -42,7 +43,7 @@ assets/                 # 共用素材/模板
 
 ### harvest-topics
 
-把调用方项目 `Topics/inbox/` 里各收集 Agent(Hermes 等)倒进来的素材,加工成 `Topics/backlog.md` 选题候选。inbox 是通用信箱,不绑特定 agent。
+把目的仓库 `Topics/inbox/` 里各收集 Agent 倒进来的素材,加工成 `Topics/backlog.md` 选题候选。**不依赖本地是否 clone 主仓**(本地有 Topics→本地读写;没有→gh/api 远程),开源通用。
 
 **触发词:** "加工inbox"、"收获选题"、"处理素材"、"素材转选题"
 
@@ -50,6 +51,21 @@ assets/                 # 共用素材/模板
 
 **关键规则:**
 - **场景驱动,不是工具驱动**——从受众真实工作痛点切入,不是"拿专业工具教人"
-- 先读调用方 `AGENTS.md` 目标人群再加工;画像不全就停下问用户
+- 先读目的仓库 `AGENTS.md` 目标人群再加工;画像不全就停下问用户
 - 只追加 backlog,不改已有条目
-- 提交规范见调用方 `Topics/inbox/README.md`(各 agent 往那倒素材)
+- 访问:本地有 Topics→本地;没有→gh cli 优先,GitHub API 次之
+
+### submit-to-inbox
+
+把一条素材(链接/文字/图片)安全提交到目的仓库 `Topics/inbox/`。**带降级,素材绝不丢**:gh cli → GitHub API → 本地兜底(skill 目录 `inbox-fallback/`)。不依赖本地 clone 主仓。
+
+**触发词:** "提交素材"、"存到inbox"、"这个存一下"
+
+**核心流程(6步):** ① 整理成inbox格式 → ② 确定仓库+认证(gh优先) → ③ 提交(gh→API降级) → ④ 没认证则引导(gh auth login / PAT) → ⑤ 连不上则本地兜底 → ⑥ 汇报
+
+**关键规则:**
+- **素材绝不丢**:提交失败必兜底到 `inbox-fallback/`,远程通了自动补提
+- gh cli 优先(用户 `gh auth login` 过即可),别一上来要 token
+- 不假设本地有主仓;`inbox-fallback/` 进 .gitignore
+
+**配合:** 收集端(Hermes/OpenClaw/Codex/CC)用本 skill 提交素材 → harvest-topics 加工。两者通过目的仓库 `Topics/inbox/` 解耦。

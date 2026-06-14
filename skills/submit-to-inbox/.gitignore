@@ -1,0 +1,3 @@
+# 本地兜底素材(用户私有),不进 git;仅保留目录结构
+inbox-fallback/*
+!inbox-fallback/.gitkeep
