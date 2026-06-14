@@ -6,6 +6,7 @@
 
 ```
 skills/text-to-card/    # 文章转图文卡片 skill(通用版)
+skills/harvest-topics/  # 素材转选题候选 skill(通用版)
 tools/                  # 独立工具/脚本
 assets/                 # 共用素材/模板
 ```
@@ -38,3 +39,17 @@ assets/                 # 共用素材/模板
 **截图工具:** `skills/text-to-card/scripts/screenshot.py`(Playwright + Chromium)
 
 **IM 对话型 agent 环境**(Hermes/OpenClaw/QwenPaw)的预览/发图/取图/路径见 `skills/text-to-card/references/im-agent-env.md`
+
+### harvest-topics
+
+把调用方项目 `Topics/inbox/` 里各收集 Agent(Hermes 等)倒进来的素材,加工成 `Topics/backlog.md` 选题候选。inbox 是通用信箱,不绑特定 agent。
+
+**触发词:** "加工inbox"、"收获选题"、"处理素材"、"素材转选题"
+
+**核心流程(第0步 + 6步):** 读目标人群规范 → ① 扫inbox → ② 解析(link/text/image) → ③ 过目标人群筛 → ④ 加工选题(标题/痛点/工具/方向/卡数) → ⑤ 追加backlog → ⑥ 归档+汇报
+
+**关键规则:**
+- **场景驱动,不是工具驱动**——从受众真实工作痛点切入,不是"拿专业工具教人"
+- 先读调用方 `AGENTS.md` 目标人群再加工;画像不全就停下问用户
+- 只追加 backlog,不改已有条目
+- 提交规范见调用方 `Topics/inbox/README.md`(各 agent 往那倒素材)
