@@ -11,13 +11,13 @@ AI内容创作工具集，包含skill、工具脚本和共用素材。
 npx skills add https://github.com/kelegele/ai-creative-skills --skill <skill-name> -a <agent-name>
 
 # 例:装 submit-to-inbox 到 Hermes
-npx skills add https://github.com/kelegele/ai-creative-skills --skill submit-to-inbox -a hermes
+npx skills add https://github.com/kelegele/ai-creative-skills --skill submit-to-inbox -a hermes-agent
 
 # 例:装 text-to-card 到 Hermes
-npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-card -a hermes
+npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-card -a hermes-agent
 ```
 
-> `<agent-name>` 按目标 agent 填(hermes / openclaw / codex / claude-code 等),完整用法见 [vercel-labs/skills](https://github.com/vercel-labs/skills)。
+> `<agent-name>` 按目标 agent 填(hermes-agent / openclaw / codex / claude-code 等),完整列表见 [vercel-labs/skills](https://github.com/vercel-labs/skills)。
 
 ## 结构
 
