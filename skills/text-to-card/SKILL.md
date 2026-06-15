@@ -92,6 +92,8 @@ HTML 要求:完整 `<!DOCTYPE html>`、Google Fonts(含 Noto Serif SC 中文)、
 通用方式:`screenshot.py` 截图基准卡 2-3 张抽样 → 发用户确认风格。(IM 对话型 agent 环境的文件服务器预览见 `references/im-agent-env.md`)
 ❌ 一口气全生成+截图才给看 ✅ 生成→抽样截图→用户确认→再批量
 
+**⚠️ 截图字体必须等加载(card-number 衬线体易 fallback):** `screenshot.py` 已在截图前 `page.evaluate("document.fonts.ready")` + 300ms 缓冲,确保 Google Fonts 加载完再截。若 card-number 等衬线字体仍不一致(某些卡 fallback 到系统 serif)→ 网络不稳,**终极方案本地化字体**(`@font-face` 引本地文件,不依赖远程 CDN)。注意:`check_fonts.py` 只查 `<link>` 声明、查不到实际加载 —— **它通过 ≠ 截图字体对**。教训:card-number 字体不一致 → 先查截图字体加载时机,**别改 CSS**(CSS 一致却渲染不同 = 截图问题)。
+
 ### 第6步 修改/确认
 用户审阅可要求修改 = 重写该张 HTML → 重截图 → 再预览。用户说"OK/确认"才进下一步。
 

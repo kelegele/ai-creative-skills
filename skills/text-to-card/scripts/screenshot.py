@@ -29,6 +29,8 @@ def screenshot(html_files: list, output_dir: str, width: int = 1080, height: int
             page = browser.new_page(viewport={"width": width, "height": height})
             page.goto(html_path)
             page.wait_for_load_state("networkidle")
+            page.evaluate("document.fonts.ready")
+            page.wait_for_timeout(300)
             png_name = Path(html_path).stem + ".png"
             png_path = output_dir / png_name
             page.screenshot(path=str(png_path), full_page=False)
