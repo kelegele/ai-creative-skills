@@ -18,9 +18,9 @@ metadata:
 "加工 inbox""收获选题""处理素材""清一下 inbox""/harvest-topics"
 
 ## 配置(运行变量)
-- **目的仓库** `TARGET_REPO`:环境变量 `FLITNUT_REPO`,默认 `kelegele/flitnut.ai`。
+- **目的仓库** `TARGET_REPO`(格式 `owner/repo`):**必须明确,不写死默认**——开源通用 skill,不绑作者仓库。来源:环境变量 `INBOX_REPO` / 本地 git remote 推断(本地有 `Topics/` 的仓库)/ 都没有则问用户。
 - **访问模式**(自动检测):
-  - 本地(当前目录或环境变量 `FLITNUT_ROOT` 指向的)有 `Topics/inbox/` → **本地模式**(直接读写)。
+  - 本地(当前目录或环境变量 `INBOX_ROOT` 指向的)有 `Topics/inbox/` → **本地模式**(直接读写)。
   - 没有 → **远程模式**:优先 gh cli(`gh auth status` OK),否则 GitHub API(`GH_TOKEN` / `GITHUB_TOKEN`)。
   - 远程也没认证 → 停下,引导用户 `gh auth login` 或配 token(同 submit-to-inbox ④)。
 

@@ -17,8 +17,11 @@ metadata:
 ## 触发
 "提交素材""存到 inbox""这个存一下""/submit-to-inbox"
 
-## 配置(运行变量,有默认)
-- **目的仓库** `TARGET_REPO`:环境变量 `FLITNUT_REPO`,默认 `kelegele/flitnut.ai`。不确定 → 问用户。
+## 配置(运行变量,**目的仓库不默认任何人的**)
+- **目的仓库** `TARGET_REPO`(格式 `owner/repo`):**必须明确,不写死默认**——这是开源通用 skill,绝不能把别人的素材投到作者仓库。来源优先级:
+  1. 环境变量 `INBOX_REPO`(如 `yourname/your-content-repo`)
+  2. 本地 git remote 推断(在某个 git 仓库内运行 → 取其 GitHub origin)
+  3. 都没有 → **问用户**:"目的仓库?(owner/repo)"
 - **认证**(按优先级):
   1. **gh cli**——用户 `gh auth login` 过即可,skill 不碰 token。最省事。
   2. **GitHub token**——环境变量 `GH_TOKEN` / `GITHUB_TOKEN`(fine-grained PAT,Contents 读写)。
@@ -32,7 +35,7 @@ metadata:
 - 正文:分析 / 原文摘录 / 图片说明
 
 ### ② 确定目的仓库 + 认证状态
-- 读 `TARGET_REPO`(默认 flitnut.ai);没有且不确定 → 问用户。
+- 读 `TARGET_REPO`(环境变量 `INBOX_REPO` / 本地 git remote);都没有 → 问用户。**不默认任何固定仓库。**
 - 检测认证:`gh auth status` 成功 → gh 模式;否则查 `GH_TOKEN` / `GITHUB_TOKEN` → API 模式;都没有 → 走 ④ 引导。
 
 ### ③ 提交(按优先级降级,失败就下一档)
