@@ -4,17 +4,20 @@ AI内容创作工具集，包含skill、工具脚本和共用素材。
 
 ## 安装
 
-用 `skills` CLI 一键装到 agent 的 skills 目录:
+用 `skills` CLI 装到指定 agent——加 `-a <agent名>` 指定目标 agent(用法详见 [vercel-labs/skills](https://github.com/vercel-labs/skills)):
 
 ```bash
-# 装单个 skill(把 <skill-name> 换成下面的 skill 名)
-npx skills add https://github.com/kelegele/ai-creative-skills --skill <skill-name>
+# 装单个 skill 到指定 agent
+npx skills add https://github.com/kelegele/ai-creative-skills --skill <skill-name> -a <agent-name>
 
-# 例:装本仓的三个 skill
-npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-card
-npx skills add https://github.com/kelegele/ai-creative-skills --skill harvest-topics
-npx skills add https://github.com/kelegele/ai-creative-skills --skill submit-to-inbox
+# 例:装 submit-to-inbox 到 Hermes
+npx skills add https://github.com/kelegele/ai-creative-skills --skill submit-to-inbox -a hermes
+
+# 例:装 text-to-card 到 Hermes
+npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-card -a hermes
 ```
+
+> `<agent-name>` 按目标 agent 填(hermes / openclaw / codex / claude-code 等),完整用法见 [vercel-labs/skills](https://github.com/vercel-labs/skills)。
 
 ## 结构
 
