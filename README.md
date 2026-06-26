@@ -26,7 +26,8 @@ npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-ca
 │   ├ text-to-card/    文章转图文卡片
 │   ├ harvest-topics/  素材转选题候选
 │   ├ submit-to-inbox/ 素材提交(带降级)
-│   └ gzh-longform/   公众号长文(两阶段)
+│   ├ gzh-longform/   公众号长文(两阶段)
+│   └ gzh-illustration/ 公众号配图(HTML→截图)
 ├ tools/            ← 独立工具/脚本
 └ assets/           ← 共用素材/模板
 ```
@@ -53,6 +54,11 @@ npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-ca
 公众号长文创作:两阶段(研究+写作),读目的仓库人设,内置爆款认知+可选联网查证,输出 markdown。
 
 → 详见 [`skills/gzh-longform/SKILL.md`](skills/gzh-longform/SKILL.md)
+
+### gzh-illustration
+公众号长文配图:读占位 → HTML 设计 → Playwright 截图 → 回填(草稿/定版两态)。封面 900×383 + 正文宽 1080。
+
+→ 详见 [`skills/gzh-illustration/SKILL.md`](skills/gzh-illustration/SKILL.md)
 
 ## License
 
