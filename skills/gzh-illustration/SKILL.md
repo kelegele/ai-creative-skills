@@ -32,7 +32,7 @@ metadata:
 **第 2 步 基准图先行(风格确认)**
 
 先只做 **封面 + 第一张正文配图**:
-- 按描述 + agentic 设计系统,自由设计 HTML+内联 CSS
+- 按描述 + agentic 设计系统,自由设计 HTML+内联 CSS,水印融入内容(见「品牌水印」节)
 - HTML 存 `images/html/gzh-imaget-{N}.html`,截图存 `images/gzh-imaget-{N}.png`
 - 截图命令:`uv run python scripts/screenshot.py <html> <png> --width <尺寸宽>`
 - 尺寸规范见 `references/size-spec.md`
@@ -74,6 +74,18 @@ uv run python scripts/replace_placeholders.py <article.md> --mode final
 - **定版态**:清掉占位描述,只留图片,可发文
 - 两态由 `replace_placeholders.py --mode` 切换
 
+## 品牌水印
+
+每张配图都要加品牌水印,规范:
+
+- **融入内容,不怼角标** —— 水印作为内容的一部分(标题副标 / 图注署名 / 卡片署名位等),不要固定右下角角标(会和主内容重叠、视觉割裂)。
+- **位置由大模型判断** —— 每张图根据自身布局选合适的融入位(标题、图注、输出块、foot 等),不一刀切;基准图阶段就把水印位置定下来。
+- **文本由项目传,skill 不写死** —— 品牌名(如「飞栗.ai」)是项目级决定,skill 保持通用;调用方知道品牌,设计 HTML 时写进对应位置。
+- **样式** —— 弱色(`#9CA3AF` Subtitle)、不抢主视觉、作为署名/页脚的自然一部分。
+- `screenshot.py --watermark <文本>` 是**角标注入**(右下角),仅用于快速/批量场景;**项目配图优先在 HTML 里融入水印,截图时不传 `--watermark`**。
+
+设计 HTML 时把品牌水印作为内容元素写进合适位置(如标题副标末尾「· 飞栗.ai」、图注署名「— 飞栗.ai」、底部 foot 署名)。
+
 ## 依赖
 
 skill 目录有独立 uv 环境(`pyproject.toml` 声明 playwright)。首次用:
@@ -97,3 +109,4 @@ uv run playwright install chromium
 - **截图前等字体** —— `document.fonts.ready` + 300ms,避免字体未加载截图导致风格错位。
 - **草稿保留描述** —— 改图时能对账"这张图画的是什么",定版才清掉。
 - **自供图路径校验** —— 自供图路径缺失要报警不回填,别静默生成错误图片。
+- **水印融入内容,不角标** —— 品牌水印作为内容一部分(标题/图注/署名位),位置因图而异、由大模型判断;别固定右下角(`--watermark` 角标会和主内容重叠)。文本项目传(如 飞栗.ai),skill 不写死。
