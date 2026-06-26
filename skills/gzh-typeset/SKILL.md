@@ -111,11 +111,11 @@ uv run python scripts/punct_normalize.py <article.md>
 
 **功能列表卡片**(成组的并列条目):
 ```html
-<div style="margin:18px 0 24px;padding:16px 18px;background:#FAFAFA;border-left:3px solid #FF5700;border-radius:0 6px 6px 0;">
+<section style="margin:18px 0 24px;padding:16px 18px;background:#FAFAFA;border-left:3px solid #FF5700;border-radius:0 6px 6px 0;">
   <p style="margin:0 0 10px;font-size:16px;line-height:1.75;color:#3f3f3f;">📥 条目一</p>
   <p style="margin:0 0 10px;font-size:16px;line-height:1.75;color:#3f3f3f;">🗂 条目二</p>
   <p style="margin:0;font-size:16px;line-height:1.75;color:#3f3f3f;">✂️ 条目三</p>
-</div>
+</section>
 ```
 
 **核心观点引用块**(文末金句):
@@ -127,11 +127,11 @@ uv run python scripts/punct_normalize.py <article.md>
 
 **结尾署名块**(白底橙边):
 ```html
-<div style="margin:28px 0 0;padding:22px 16px;border:1px solid #FF5700;border-radius:8px;text-align:center;">
+<section style="margin:28px 0 0;padding:22px 16px;background:#FFF7F2;border-radius:8px;text-align:center;">
   <p style="margin:0 0 8px;font-size:17px;font-weight:bold;color:#FF5700;letter-spacing:0.5px;">飞栗.ai</p>
   <p style="margin:0 0 4px;font-size:14px;color:#5a5a5a;line-height:1.7;">多实践 · 挖技巧 · 让复杂变简单</p>
   <p style="margin:0;font-size:14px;color:#FF5700;line-height:1.7;">关注我,从放弃学习到驾驭AI 👇</p>
-</div>
+</section>
 ```
 
 **图片**:
@@ -166,5 +166,6 @@ uv run python scripts/punct_normalize.py <article.md 或 wechat.html>
 - **标点全角只改正文,不碰 CSS / md 语法 / URL** —— `style="color:#FF5700;"` 的冒号、`![]()` 的括号、`https://` 的冒号改了就废。脚本用遮罩法保护(见 punct_normalize.py)。
 - **强调三档克制,标差异点** —— 全强调 = 没强调;加粗主色为主,反色只给 2-3 个最核心差异点,胶囊只给产品名/核心概念首次。不标重复标签词。
 - **反色 / 胶囊上线前必测** —— inline 的 `background` 在公众号偶尔有兼容细节,本地好看 ≠ 公众号好看,粘草稿实测。
+- **容器块用 `<section>` 不用 `<div>`,`border` 简写丢样式改用 `background`** —— 公众号编辑器对 `<div>` 的 inline style 支持差,粘贴常整个丢样式(公众号原生用 `<section>`);`border:1px solid` 四边简写最容易丢,换 `background-color`(粘贴最稳),单边 `border-left` 通常保留。所有容器块(署名 / 功能卡 / 引用框)一律 `<section>`,要边框感时用背景色代替。
 - **图片不跟随粘贴** —— 公众号不吃本地图片路径,文字粘贴后图片位手动上传插入。
 - **基准段先行** —— 刊头条 + H1 + 一个章节定风格,确认后批量,避免全量返工(同 gzh-illustration / text-to-card 教训)。
