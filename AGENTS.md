@@ -69,3 +69,23 @@ assets/                 # 共用素材/模板
 - 不假设本地有主仓;`inbox-fallback/` 进 .gitignore
 
 **配合:** 收集端(Hermes/OpenClaw/Codex/CC)用本 skill 提交素材 → harvest-topics 加工。两者通过目的仓库 `Topics/inbox/` 解耦。
+
+### gzh-longform
+
+写公众号长文时,遵循 `skills/gzh-longform/SKILL.md` 的两阶段工作流(研究 + 写作,中间硬闸门)。
+
+**触发词:** "公众号长文"、"公众号文章"、"写长文"、"深度图文"
+
+**核心流程(第0步 + 6步):**
+0. 运行参数(OUTPUT_DIR/字数/是否查证)+ 读目的仓库人设(整篇读 AGENTS.md/CLAUDE.md)
+→ ① 接收选题(backlog 取 或 当场给)→ ② 事实查证(可选联网)→ ③ 定核心观点+结构+字数预算 → **用户确认研究简报(硬闸门)** → ④ 生成正文 → ⑤ 自检 → ⑥ 定版
+
+**关键规则:**
+- 通用版,不写死人设;人设读目的仓库 AGENTS.md/CLAUDE.md,缺关键字段停下问用户
+- 选题从 backlog(加工过的),不从 inbox(原始素材)
+- 字数预算第 3 步分到每段,先控字数再写(不写长再砍)
+- 核心观点是"明确主张",不强求反常识
+- 事实查证用 agent 可用联网能力,无则标注跳过;二手不许当原话
+- 定版前必跑 `scripts/wordcount.py`,0 报警才定版
+- 不调用 md-to-wechat / text-to-card / 任何第三方 skill
+- 字数脚本不做禁用词,归 agent 自检

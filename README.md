@@ -25,7 +25,8 @@ npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-ca
 ├ skills/           ← 可复用的创作技能
 │   ├ text-to-card/    文章转图文卡片
 │   ├ harvest-topics/  素材转选题候选
-│   └ submit-to-inbox/ 素材提交(带降级)
+│   ├ submit-to-inbox/ 素材提交(带降级)
+│   └ gzh-longform/   公众号长文(两阶段)
 ├ tools/            ← 独立工具/脚本
 └ assets/           ← 共用素材/模板
 ```
@@ -47,6 +48,11 @@ npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-ca
 把素材(链接/文字/图片)安全提交到 `Topics/inbox/`,带降级(gh cli→API→本地兜底),素材绝不丢。不依赖本地 clone 主仓。配合 harvest-topics:收集端提交 → 加工端加工。
 
 → 详见 [`skills/submit-to-inbox/SKILL.md`](skills/submit-to-inbox/SKILL.md)
+
+### gzh-longform
+公众号长文创作:两阶段(研究+写作),读目的仓库人设,内置爆款认知+可选联网查证,输出 markdown。
+
+→ 详见 [`skills/gzh-longform/SKILL.md`](skills/gzh-longform/SKILL.md)
 
 ## License
 
