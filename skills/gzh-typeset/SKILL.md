@@ -61,10 +61,10 @@ uv run python scripts/punct_normalize.py <article.md>
 - **辅色(浅橙底)**:`#FFF7F2`
 - **刊头条文案**:
   - 📖 分享我所知道的AI技巧笔记
-  - 🧐 多实践 · 挖技巧 · 让复杂变简单
+  - 🧐 多实践 · 挖场景 · 让复杂变简单
 - **署名块**:
   - 品牌:飞栗.ai
-  - 定位语:多实践 · 挖技巧 · 让复杂变简单
+  - 定位语:多实践 · 挖场景 · 让复杂变简单
   - 关注引导:关注我,从放弃学习到驾驭AI 👇
 
 ## 样式规范(inline 模板,复制复用,不手敲)
@@ -76,7 +76,7 @@ uv run python scripts/punct_normalize.py <article.md>
 <p style="text-align:center;margin:0 0 22px;">
   <span style="display:inline-block;padding:11px 20px;background:#FFF7F2;border-radius:10px;line-height:1.7;">
     <span style="display:block;font-size:13px;color:#3f3f3f;">📖 分享我所知道的AI技巧笔记</span>
-    <span style="display:block;font-size:12px;color:#FF5700;letter-spacing:0.5px;margin-top:2px;">🧐 多实践 · 挖技巧 · 让复杂变简单</span>
+    <span style="display:block;font-size:12px;color:#FF5700;letter-spacing:0.5px;margin-top:2px;">🧐 多实践 · 挖场景 · 让复杂变简单</span>
   </span>
 </p>
 ```
@@ -129,7 +129,7 @@ uv run python scripts/punct_normalize.py <article.md>
 ```html
 <section style="margin:28px 0 0;padding:22px 16px;background:#FFF7F2;border-radius:8px;text-align:center;">
   <p style="margin:0 0 8px;font-size:17px;font-weight:bold;color:#FF5700;letter-spacing:0.5px;">飞栗.ai</p>
-  <p style="margin:0 0 4px;font-size:14px;color:#5a5a5a;line-height:1.7;">多实践 · 挖技巧 · 让复杂变简单</p>
+  <p style="margin:0 0 4px;font-size:14px;color:#5a5a5a;line-height:1.7;">多实践 · 挖场景 · 让复杂变简单</p>
   <p style="margin:0;font-size:14px;color:#FF5700;line-height:1.7;">关注我,从放弃学习到驾驭AI 👇</p>
 </section>
 ```

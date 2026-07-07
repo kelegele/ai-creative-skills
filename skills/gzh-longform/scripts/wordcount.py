@@ -4,7 +4,7 @@
 只统计正文(去 frontmatter / 参考来源 / 候选标题);检查结构标记(核心观点/参考来源/候选标题)。
 不做禁用词检测(归 agent 自检)。
 
-用法:uv run python wordcount.py <article.md> [--min 1500 --max 2000]
+用法:uv run python wordcount.py <article.md> [--min 1000 --max 99999]
 退出码:0 = 通过,1 = 字数越界或缺结构标记。
 """
 import argparse
@@ -64,8 +64,8 @@ def check_structure(text: str) -> list:
 def main():
     parser = argparse.ArgumentParser(description="字数统计 + 结构标记检查")
     parser.add_argument("article", help="article.md 路径")
-    parser.add_argument("--min", type=int, default=1500, help="最小字数(默认 1500)")
-    parser.add_argument("--max", type=int, default=2000, help="最大字数(默认 2000)")
+    parser.add_argument("--min", type=int, default=1000, help="最小字数(默认 1000)")
+    parser.add_argument("--max", type=int, default=99999, help="最大字数(默认 99999,即不设上限)")
     args = parser.parse_args()
 
     text = Path(args.article).read_text(encoding="utf-8")
