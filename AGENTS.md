@@ -2,15 +2,61 @@
 
 通用 AI 内容创作工具集,含 skill、工具脚本、共用素材。适配任意 agent 环境。
 
+> 本文件是单一真相源。`CLAUDE.md` 是指向它的软链接——Claude Code 约定读 `CLAUDE.md`,其他 agent(Hermes/OpenClaw/Codex/Copilot…)读 `AGENTS.md`,内容一致,改这里即可。
+
 ## Project Structure
 
 ```
-skills/text-to-card/    # 文章转图文卡片 skill(通用版)
-skills/harvest-topics/  # 素材转选题候选 skill(通用版)
-skills/submit-to-inbox/ # 素材提交(带降级) skill(通用版)
-tools/                  # 独立工具/脚本
-assets/                 # 共用素材/模板
+skills/text-to-card/      # 文章转图文卡片 skill(通用版)
+skills/harvest-topics/    # 素材转选题候选 skill(通用版)
+skills/submit-to-inbox/   # 素材提交(带降级) skill(通用版)
+skills/gzh-longform/      # 公众号长文(两阶段) skill
+skills/gzh-illustration/  # 公众号配图(HTML→截图) skill
+skills/gzh-typeset/       # 公众号排版(article.md→wechat.html) skill
+tools/                    # 独立工具/脚本
+assets/                   # 共用素材/模板
 ```
+
+## 内容生产管线(架构)
+
+各 skill 是独立的 `skills/<name>/SKILL.md` 工作流,通过**目的仓库**里的中间产物解耦,不互相调用:
+
+```
+收集端 ──提交──▶ Topics/inbox/ ──加工──▶ Topics/backlog.md ──取选题──▶ gzh-longform ──▶ article.md ──▶ {gzh-typeset, gzh-illustration} ──▶ 发布
+                                                                                            ▲
+                                          text-to-card(文章转卡片,独立支线)
+```
+
+- `submit-to-inbox`(收集端):各收集 agent 把素材(链接/文字/图)提交到**目的仓库** `Topics/inbox/`。三级降级(gh cli → GitHub API → 本地 `inbox-fallback/`),素材绝不丢。
+- `harvest-topics`(加工端):扫 inbox → 解析 → 过目标人群筛 → 加工成 `Topics/backlog.md` 选题候选。**只追加,不改已有**。
+- `gzh-longform`(写作端):**从 backlog 取选题**(不从 inbox 取原始素材),两阶段(研究→写作,中间硬闸门)出 `article.md`。
+- `gzh-typeset`(排版端):把 `article.md` 排成全 inline 样式的 `wechat.html`,可一键复制粘贴公众号后台。
+- `gzh-illustration`(配图端):给长文配图(读占位 → HTML → Playwright 截图 → 回填,草稿/定版两态)。
+- `text-to-card`(独立支线):文章转图文卡片(小红书/公众号),大纲→HTML→截图。
+
+**解耦原则:** 收集↔写作靠 `Topics/inbox/` 和 `Topics/backlog.md`(目的仓库的中间产物)通信,不直接耦合。各 skill 自带脚本,互不调用(gzh-longform / gzh-typeset / gzh-illustration 都不调 text-to-card)。
+
+**目的仓库 vs 本仓库:** skill 装在各 agent 的项目里;`Topics/inbox/`、`Content/<组>/article.md` 等产出在**目的仓库**(用户的内容仓),不在这个 skill 仓。skill 不假设本地有目的仓库——本地有就本地读写,没有就走 `gh`/API 远程。
+
+## Commands
+
+Python 一律走 `uv`(全局规则)。本仓无 build / lint——是 skill 仓,不是应用。
+
+### 测试(纯 stdlib unittest,逐个跑)
+
+```bash
+uv run python skills/gzh-longform/scripts/test_wordcount.py
+uv run python skills/gzh-illustration/scripts/test_replace_placeholders.py
+```
+
+### 关键脚本(各 skill 工作流内调用)
+
+| 脚本 | 作用 |
+|------|------|
+| `skills/gzh-longform/scripts/wordcount.py <article.md>` | 数字数 + 查结构;定版前必跑,**0 报警才定版** |
+| `skills/gzh-typeset/scripts/punct_normalize.py <file.md\|.html>` | 标点全角化(遮罩保护 frontmatter / URL / markdown 语法 / CSS,只改正文) |
+| `skills/gzh-illustration/scripts/replace_placeholders.py` | 占位 → 图片回填(草稿/定版两态) |
+| `skills/{text-to-card,gzh-illustration}/scripts/screenshot.py` | Playwright + Chromium 截图;`gzh-illustration` 有自己的 `pyproject.toml` / `uv.lock`(playwright 依赖,`uv sync` 装) |
 
 ## Skills
 
@@ -90,7 +136,6 @@ assets/                 # 共用素材/模板
 - 不调用 md-to-wechat / text-to-card / 任何第三方 skill
 - 字数脚本不做禁用词,归 agent 自检
 
-
 ### gzh-illustration
 
 给公众号长文配图时,遵循 `skills/gzh-illustration/SKILL.md` 的工作流。
@@ -109,3 +154,23 @@ assets/                 # 共用素材/模板
 - 截图前 `document.fonts.ready` + 300ms 等字体
 - 尺寸:封面 900×383,正文宽 1080 高度自由
 - 自供图路径缺失报警不回填
+
+### gzh-typeset
+
+给公众号长文排版时(把 `article.md` 排成可粘贴公众号的 `wechat.html`),遵循 `skills/gzh-typeset/SKILL.md`。
+
+**触发词:** "公众号排版"、"长文排版"、"wechat.html"、"排版"、"typeset"
+
+**核心流程(第0步 + 5步):**
+0. 运行参数(文章路径/品牌配置)+ 读目的仓库排版规范
+→ ① 标点全角化(`punct_normalize.py`)→ ② 基准段先行(刊头条+H1+一个章节,确认风格)→ ③ 生成完整 wechat.html → ④ 自检 → ⑤ 预览+提醒粘草稿实测
+
+**关键规则:**
+- **全 inline 样式**:公众号粘贴只保留 inline style,`<style>` 块和 class 会被丢掉;所以产出全部 inline 样式
+- 容器块用 `<section>` 不用 `<div>`(公众号对 div 的 inline style 支持差,粘贴常整个丢);要边框感用 `background` 代替 `border` 四边简写(单边 `border-left` 通常保留)
+- 正文从 article.md **复制不手敲**(手敲易混入错字);只排版,不改原文文字
+- 标点全角只改正文,**保护** frontmatter 键 / markdown 语法 / URL / CSS(脚本遮罩法)
+- 三档强调克制(加粗主色为主 / 反色给 2-3 个核心差异点 / 胶囊给产品名首次),标差异点不标重复词
+- 基准段先行(同 text-to-card / gzh-illustration 教训),不一口气全量生成
+- 反色块 / 胶囊上线前**务必粘草稿实测**(`background` 在公众号偶尔有兼容细节)
+- 图片不跟随粘贴(公众号不吃本地路径,手动上传)
