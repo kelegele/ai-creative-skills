@@ -1,0 +1,23 @@
+# 风格声明 —— 只引用库内资产 id,不复制素材本体(素材更新,模板自动生效)
+
+fonts:
+  title:
+    ref: "font-notoserifsc-001"     # → fonts/serif/ 下资产 id
+    fallback: "Noto Serif SC"
+    weight: 900
+  body:
+    ref: "font-notosanssc-001"      # → fonts/sans-serif/ 下资产 id
+    fallback: "Noto Sans SC"
+    weight: 400
+
+colors:
+  primary: "#FF5701"                # 飞栗主色
+  background: "#F6F6F1"
+  text_primary: "#111827"
+  text_secondary: "#6B7280"
+  palette_ref: "palette-feili-001"  # → color/palettes/ 下资产 id(完整灰阶与强调色)
+
+motion:
+  easing_default: "spring({stiffness: 100, damping: 15})"
+  title_animation_ref: "anim-fadein-001"   # → code-components/animations/ 下资产 id
+  transition_ref: "trans-hardcut-001"      # → transitions/hard-cut/ 下资产 id

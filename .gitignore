@@ -2,6 +2,6 @@
 
 # 视频素材库:素材本体 + 元信息 + 生成物,一律不进 git
 # (规范见 skills/video-asset-library;橱窗工具见 tools/asset-library-web)
-video-assets-library/
+.asset_library/
 *.metadata.yaml
 gallery.html

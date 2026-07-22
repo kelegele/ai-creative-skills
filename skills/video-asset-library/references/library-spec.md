@@ -40,7 +40,7 @@
 ## 二、分类体系(一级目录)
 
 ```
-📁 video-assets-library/
+📁 .asset_library/
 ├── 📁 footage/              # 镜头素材
 │   ├── 📁 b-roll/           # 空镜/通用场景
 │   │   ├── 📁 city/         # 城市
@@ -97,11 +97,11 @@
 │   ├── 📁 compositions/     # 完整合成模板
 │   └── 📁 hooks/            # 自定义 Hooks
 │
-└── 📁 templates/            # 项目模板
+└── 📁 templates/            # 全案模板(结构+风格+配音+框架,详见第六节)
     ├── 📁 product-launch/   # 产品发布
     ├── 📁 data-report/      # 数据报告
     ├── 📁 short-video/      # 短视频
-    └── 📁 documentary/      # 纪录片
+    └── 📁 feili-series/     # 示例:飞栗系列(见 skill examples/)
 ```
 
 ---
@@ -237,3 +237,61 @@ const playSound = frame === 30; // 第30帧触发
 
 // 实际播放逻辑(需配合音频库如 remotion-media-utils)
 ```
+
+
+---
+
+## 六、全案模板(templates/)详解
+
+全案模板 = **一整套可复用的视频"风格包"**:结构骨架 + 风格声明 + 配音配置 + 节奏曲线。做系列视频时选模板 → 替换内容 → 渲染,不用跨类目拼装。
+
+### 6.1 核心原则:引用不复制
+
+模板只存**引用和配置**,不复制素材本体——字体/音频/动效仍由各类目单一持有,模板通过资产 id 引用。素材更新,所有引用它的模板自动生效。
+
+### 6.2 目录结构(每个模板一个目录)
+
+```
+templates/<模板名>/
+├── metadata.yaml        # 通用元数据 + 模板特有字段(见 6.3)
+├── composition/         # Remotion 骨架:场景结构 + 时长框架
+│   ├── Video.tsx        # 主 Composition(场景占位,内容留槽位)
+│   └── constants.ts     # 时长/帧率/分辨率等框架常量
+├── style.yaml           # 风格声明:字体/主色/动效风格,引用库内资产 id
+├── voice.yaml           # 配音配置:语气/语速/情绪,引用 audio/voice 条目
+└── rhythm.md            # 节奏曲线:起承转合 + 各段时间码 + 信息密度标注
+```
+
+### 6.3 模板特有元数据(metadata.yaml 追加字段)
+
+```yaml
+# 通用字段同第三节,以下追加:
+template_kind: "product-launch / data-report / short-video / series"
+duration_target: "00:01:30"        # 目标时长
+resolution: "1080x1920"
+framerate: "30fps"
+style_refs: ["font-inter-001", "lut-minimal-001"]      # style.yaml 引用的资产 id
+voice_ref: "voice-calm-001"        # voice.yaml 引用的人声模板 id
+remotion_version: "4.x"
+```
+
+### 6.4 命名规范
+
+```
+[用途]_[风格]_[版本]
+
+示例:
+ShortVideo_Minimal_v01/
+Series_FeiliCalm_v01/
+ProductLaunch_Tech_v02/
+```
+
+### 6.5 使用流程(配合 remotion-video skill)
+
+1. 做视频第 3 步(分镜拆解)前,先查 `templates/` 有没有匹配的全案模板
+2. 有 → 拷贝模板目录到新工程,按 `rhythm.md` 填内容槽位,`style.yaml`/`voice.yaml` 解析资产 id 引用
+3. 没有 → 从零做,项目结束后按维护节奏提炼新模板入库
+
+### 6.6 示例
+
+完整示例见 `skills/video-asset-library/examples/feili-series/`(飞栗系列全案模板骨架)。

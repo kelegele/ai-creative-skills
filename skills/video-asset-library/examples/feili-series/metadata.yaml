@@ -1,0 +1,18 @@
+# 飞栗系列全案模板 —— 通用元数据 + 模板特有字段
+id: "template-feili-series-001"
+name: "飞栗系列全案模板"
+type: "全案模板"
+created: "2026-07-22"
+updated: "2026-07-22"
+source: "原创"
+license: "自有"
+project: ""
+
+# 模板特有字段(library-spec.md 6.3)
+template_kind: "series"
+duration_target: "00:01:30"
+resolution: "1080x1920"
+framerate: "30fps"
+style_refs: ["font-notosanssc-001", "palette-feili-001"]  # style.yaml 引用的资产 id(示例,待入库后对齐)
+voice_ref: "voice-calm-001"                               # voice.yaml 引用的人声模板 id(示例)
+remotion_version: "4.x"

@@ -4,13 +4,16 @@
 # ///
 """扫描视频素材库,生成静态橱窗 gallery.html(数据内联,file:// 直接打开,不起 server)。
 
+前端:antd v5 组件 + Tailwind 工具类 + Kimi 设计 token 调教(色彩/圆角/字体/动效),
+CDN 加载(首次打开需联网)。数据内联,媒体用相对路径。
+
 用法:
     uv run build_gallery.py <LIBRARY_ROOT> [-o OUTPUT.html]
 
 约定:
-    - 文件素材:同目录旁挂 `<文件名>.metadata.yaml`
+    - 文件素材:同目录旁挂 `<原文件名>.metadata.yaml`
     - 目录素材(如 Remotion 组件目录):目录内放 `metadata.yaml`
-    - gallery.html 默认生成到 LIBRARY_ROOT 下,媒体预览用相对路径(file:// 可播放)
+    - gallery.html 默认生成到 LIBRARY_ROOT 下
     - LIBRARY_ROOT、metadata.yaml、gallery.html 均不进 git(见仓库 .gitignore)
 """
 from __future__ import annotations
@@ -83,86 +86,203 @@ TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>视频素材库 · __COUNT__ 件</title>
+<title>素材库橱窗 · __COUNT__ 件</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+/* Kimi tokens(color/radius/typography/spacing)→ Tailwind 映射
+   来源:kimi-design-skill references/tokens.json */
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      kimiBlue:  { DEFAULT:'#1783ff', hover:'#167ff7', active:'#167cf2', bg10:'rgba(23,131,255,0.1)' },
+      kimiOrange:{ DEFAULT:'#ff9500', bg10:'rgba(255,149,0,0.1)' },
+      label: { primary:'rgba(0,0,0,0.9)', secondary:'rgba(0,0,0,0.6)', tertiary:'rgba(0,0,0,0.45)', quaternary:'rgba(0,0,0,0.3)' },
+      fill:  { f1:'rgba(0,0,0,0.03)', f2:'rgba(0,0,0,0.05)', f3:'rgba(0,0,0,0.15)' },
+      sep:   'rgba(0,0,0,0.13)',
+      ground:'#f9fbfc',
+      surface:'#ffffff',
+    },
+    borderRadius: { xxs:'4px', sm:'8px', md:'10px', lg:'12px', xl:'16px' },
+    fontFamily: {
+      sans:['PingFang SC','-apple-system','Helvetica Neue','Microsoft YaHei','sans-serif'],
+      mono:['Geist Mono','ui-monospace','Menlo','monospace'],
+    },
+  }}
+}
+</script>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif; background:#F6F6F1; color:#111827; padding:32px; }
-  header { max-width:1200px; margin:0 auto 24px; }
-  h1 { font-size:24px; margin-bottom:4px; }
-  .sub { color:#6B7280; font-size:13px; }
-  .bar { max-width:1200px; margin:0 auto 24px; display:flex; gap:12px; flex-wrap:wrap; }
-  input,select { padding:10px 14px; border:1px solid #E5E2DA; border-radius:10px; font-size:14px; background:#fff; }
-  input { flex:1; min-width:220px; }
-  .grid { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
-  .card { background:#fff; border-radius:14px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,.06); display:flex; flex-direction:column; gap:8px; }
-  .card h3 { font-size:15px; word-break:break-all; }
-  .path { font-family:ui-monospace,Menlo,monospace; font-size:11px; color:#9CA3AF; word-break:break-all; }
-  .tags { display:flex; gap:6px; flex-wrap:wrap; }
-  .tag { font-size:11px; padding:2px 8px; border-radius:99px; background:#F3F4F6; color:#374151; }
-  .tag.cat { background:#FF5701; color:#fff; }
-  .tag.lic { background:#FEF3C7; color:#92400E; }
-  .meta { font-size:12px; color:#6B7280; display:grid; grid-template-columns:auto 1fr; gap:2px 8px; }
-  .meta b { color:#374151; font-weight:600; }
-  video,audio,img { width:100%; border-radius:8px; background:#111; max-height:160px; object-fit:contain; }
-  details { font-size:12px; color:#6B7280; }
-  summary { cursor:pointer; color:#FF5701; }
-  pre { background:#F9FAFB; padding:8px; border-radius:8px; overflow:auto; font-size:11px; margin-top:6px; }
-  .empty { max-width:1200px; margin:60px auto; text-align:center; color:#9CA3AF; }
+  body { background:#f9fbfc; }
+  /* Purposeful Motion:hover 抬升 1.02 / 按压 0.97,150ms Kimi ease-out,只动 transform+shadow */
+  .card { transition:transform 150ms cubic-bezier(0.23,1,0.32,1), box-shadow 150ms cubic-bezier(0.23,1,0.32,1); }
+  @media (hover:hover) and (pointer:fine) {
+    .card:hover { transform:scale(1.02); box-shadow:0 4px 16.4px rgba(0,0,0,0.1); }
+  }
+  .card:active { transform:scale(0.97); }
+  *:focus-visible { outline:2px solid #1783ff; outline-offset:2px; border-radius:4px; }
+  @media (prefers-reduced-motion:reduce) {
+    * { animation-duration:0.01ms!important; transition-duration:0.01ms!important; }
+  }
 </style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/dayjs@1/dayjs.min.js"></script>
+<script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 </head>
 <body>
-<header>
-  <h1>🎬 视频素材库</h1>
-  <div class="sub">__COUNT__ 件素材 · 生成时间 __TIME__ · 静态橱窗,入库/修改请走 video-asset-library skill</div>
-</header>
-<div class="bar">
-  <input id="q" placeholder="搜索名称 / 路径 / 元数据…" oninput="render()">
-  <select id="cat" onchange="render()"><option value="">全部分类</option></select>
-  <select id="kind" onchange="render()">
-    <option value="">全部形态</option>
-    <option value="video">视频</option><option value="audio">音频</option>
-    <option value="image">图片</option><option value="dir">组件/目录</option><option value="file">其他文件</option>
-  </select>
-</div>
-<div class="grid" id="grid"></div>
-<script>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+const { ConfigProvider, Input, Select, Tabs, Tag, Modal, Empty } = antd;
+
 const ITEMS = __DATA__;
 const HIDE = ["id","name","type","license","source","project"];
-const esc = s => String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const cats = [...new Set(ITEMS.map(i=>i.category))].sort();
-for (const c of cats) document.getElementById("cat").insertAdjacentHTML("beforeend", `<option>${esc(c)}</option>`);
-function preview(i){
-  if (i.kind==="video") return `<video src="${esc(i.path)}" controls preload="metadata"></video>`;
-  if (i.kind==="audio") return `<audio src="${esc(i.path)}" controls></audio>`;
-  if (i.kind==="image") return `<img src="${esc(i.path)}" loading="lazy">`;
-  return "";
+const KIND_LABEL = { video:"视频", audio:"音频", image:"图片", dir:"组件/目录", file:"其他文件" };
+/* 一级目录名(英文,文件系统惯例)→ 界面显示(中文),未收录的目录名原样显示 */
+const CAT_LABEL = {
+  "footage":"镜头素材", "transitions":"转场预设", "motion-graphics":"动效组件",
+  "audio":"音频", "fonts":"字体", "color":"色彩资产",
+  "graphics":"图形资产", "code-components":"代码组件", "templates":"项目模板",
+};
+const catLabel = c => CAT_LABEL[c] || c;
+/* Tab 顺序 = library-spec.md 目录树业务顺序(9 大类全展示,无素材为 0);枚举外目录排最后按字母序 */
+const CAT_ORDER = Object.keys(CAT_LABEL);
+
+/* 语义色:分类=kimiBlue(主层级),授权=kimiOrange(权益提示),来源=中性灰 */
+function ItemTag({color, bg, children}) {
+  return (
+    <Tag bordered={false} style={{ marginInlineEnd:0, borderRadius:4, fontSize:12, lineHeight:'18px',
+      color, background:bg, padding:'0 8px' }}>{children}</Tag>
+  );
 }
-function render(){
-  const q = document.getElementById("q").value.trim().toLowerCase();
-  const cat = document.getElementById("cat").value;
-  const kind = document.getElementById("kind").value;
-  const list = ITEMS.filter(i =>
-    (!cat || i.category===cat) && (!kind || i.kind===kind) &&
-    (!q || JSON.stringify(i).toLowerCase().includes(q)));
-  document.getElementById("grid").innerHTML = list.length ? list.map(i=>{
-    const rows = Object.entries(i.meta||{}).filter(([k])=>!HIDE.includes(k))
-      .map(([k,v])=>`<b>${esc(k)}</b><span>${esc(Array.isArray(v)?v.join(", "):v)}</span>`).join("");
-    return `<div class="card">
-      ${preview(i)}
-      <h3>${esc(i.name)}</h3>
-      <div class="path">${esc(i.path)}</div>
-      <div class="tags">
-        <span class="tag cat">${esc(i.category)}</span>
-        ${i.type?`<span class="tag">${esc(i.type)}</span>`:""}
-        ${i.license?`<span class="tag lic">${esc(i.license)}</span>`:""}
-        ${i.source?`<span class="tag">${esc(i.source)}</span>`:""}
+
+function Preview({ item }) {
+  if (item.kind === 'video')
+    return <video src={item.path} controls preload="metadata"
+      className="w-full rounded-sm bg-black max-h-40 object-contain" />;
+  if (item.kind === 'audio')
+    return <audio src={item.path} controls className="w-full" />;
+  if (item.kind === 'image')
+    return <img src={item.path} loading="lazy"
+      className="w-full rounded-sm bg-black max-h-40 object-contain" />;
+  return null;
+}
+
+function AssetCard({ item, onOpenMeta }) {
+  const rows = Object.entries(item.meta || {})
+    .filter(([k]) => !HIDE.includes(k))
+    .slice(0, 6);
+  return (
+    <div className="card bg-surface rounded-lg p-4 flex flex-col gap-2">
+      <Preview item={item} />
+      <div className="text-[15px] leading-[22px] font-medium text-label-primary break-all">{item.name}</div>
+      <div className="font-mono text-[10px] leading-[14px] text-label-quaternary break-all">{item.path}</div>
+      <div className="flex flex-wrap gap-1">
+        <ItemTag color="#1783ff" bg="rgba(23,131,255,0.1)">{catLabel(item.category)}</ItemTag>
+        {item.type && <ItemTag color="rgba(0,0,0,0.6)" bg="rgba(0,0,0,0.05)">{item.type}</ItemTag>}
+        {item.license && <ItemTag color="#ff9500" bg="rgba(255,149,0,0.1)">{item.license}</ItemTag>}
+        {item.source && <ItemTag color="rgba(0,0,0,0.45)" bg="rgba(0,0,0,0.03)">{item.source}</ItemTag>}
       </div>
-      ${rows?`<div class="meta">${rows}</div>`:""}
-      <details><summary>原始元数据</summary><pre>${esc(JSON.stringify(i.meta,null,2))}</pre></details>
-    </div>`;
-  }).join("") : `<div class="empty">没有匹配的素材</div>`;
+      {rows.length > 0 && (
+        <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[12px] leading-[18px]">
+          {rows.map(([k, v]) => (
+            <React.Fragment key={k}>
+              <span className="text-label-tertiary">{k}</span>
+              <span className="text-label-secondary break-all">{Array.isArray(v) ? v.join(', ') : String(v)}</span>
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+      <button onClick={() => onOpenMeta(item)}
+        className="self-start text-[12px] leading-[18px] text-kimiBlue hover:text-kimiBlue-hover transition-colors">
+        原始元数据 →
+      </button>
+    </div>
+  );
 }
-render();
+
+function App() {
+  const [q, setQ] = useState('');
+  const [cat, setCat] = useState(null);
+  const [kind, setKind] = useState(null);
+  const [metaItem, setMetaItem] = useState(null);
+
+  /* Tab 固定展示规范 9 大类(无素材的为 0),枚举外目录追加在最后 */
+  const cats = useMemo(() => {
+    const present = new Set(ITEMS.map(i => i.category));
+    const extras = [...present].filter(c => !CAT_ORDER.includes(c)).sort();
+    return [...CAT_ORDER, ...extras];
+  }, []);
+  const list = useMemo(() => {
+    const kw = q.trim().toLowerCase();
+    return ITEMS.filter(i =>
+      (!cat || i.category === cat) &&
+      (!kind || i.kind === kind) &&
+      (!kw || JSON.stringify(i).toLowerCase().includes(kw)));
+  }, [q, cat, kind]);
+
+  return (
+    <ConfigProvider theme={{
+      token: {
+        colorPrimary:'#1783ff', borderRadius:10,
+        fontFamily:"PingFang SC, -apple-system, 'Helvetica Neue', 'Microsoft YaHei', sans-serif",
+        colorText:'rgba(0,0,0,0.9)', colorTextSecondary:'rgba(0,0,0,0.6)',
+        colorBorder:'rgba(0,0,0,0.13)', colorBgLayout:'#f9fbfc',
+      },
+      components: { Input:{ controlHeight:32 }, Select:{ controlHeight:32 } },
+    }}>
+      <div className="max-w-[1200px] mx-auto px-6 py-8">
+        {/* 页头:大标题 20/600,说明 12px tertiary,Quiet Utility */}
+        <header className="mb-6">
+          <h1 className="text-[20px] leading-[30px] font-semibold text-label-primary">素材库橱窗</h1>
+          <p className="text-[12px] leading-[18px] text-label-tertiary mt-1">
+            __COUNT__ 件素材 · 生成于 __TIME__ · 只读橱窗,入库与维护走 video-asset-library skill
+          </p>
+        </header>
+
+        {/* 工具栏:搜索 + 形态筛选,间距 12 */}
+        <div className="flex flex-wrap gap-3">
+          <Input allowClear placeholder="搜索名称 / 路径 / 元数据…"
+            value={q} onChange={e => setQ(e.target.value)} style={{ flex:1, minWidth:220 }} />
+          <Select allowClear placeholder="全部形态" value={kind} onChange={v => setKind(v ?? null)}
+            style={{ minWidth:140 }}
+            options={Object.entries(KIND_LABEL).map(([v, l]) => ({ value:v, label:l }))} />
+        </div>
+
+        {/* 分类 Tab:第一个「全部」,带数量;切换即筛选 */}
+        <Tabs
+          activeKey={cat ?? 'all'}
+          onChange={k => setCat(k === 'all' ? null : k)}
+          items={[
+            { key:'all', label:`全部 ${ITEMS.length}` },
+            ...cats.map(c => ({
+              key:c,
+              label:`${catLabel(c)} ${ITEMS.filter(i => i.category === c).length}`,
+            })),
+          ]}
+        />
+
+        {/* 卡片网格:卡片即框架对象,间距 16,白卡片 vs 浅灰页底=面对比不加描边 */}
+        {list.length > 0 ? (
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+            {list.map(i => <AssetCard key={i.path} item={i} onOpenMeta={setMetaItem} />)}
+          </div>
+        ) : (
+          <Empty description="没有匹配的素材" style={{ margin:'60px auto' }} />
+        )}
+
+        <Modal open={!!metaItem} title={metaItem?.name} footer={null}
+          onCancel={() => setMetaItem(null)} width={520}>
+          <pre className="font-mono text-[12px] leading-[18px] bg-fill-f1 rounded-sm p-3 overflow-auto">
+            {metaItem ? JSON.stringify(metaItem.meta, null, 2) : ''}
+          </pre>
+        </Modal>
+      </div>
+    </ConfigProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>

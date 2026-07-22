@@ -1,0 +1,14 @@
+# 配音配置 —— 引用 audio/voice/ 人声模板,只存参数不存音频本体
+
+voice_ref: "voice-calm-001"        # → audio/voice/ 下资产 id(冷静陈述者语气参考)
+
+delivery:
+  tone: "冷静陈述"                  # 老师讲课感,不带情绪词
+  pace_wpm: 180                     # 中文约 180 字/分钟
+  pause_beats: [0.5, 1.0]           # 句间停顿秒数范围
+  emphasis: "关键词重读,不拖长音"
+
+bgm:
+  mood_ref: "music-minimal-001"     # → audio/music/minimal/ 下资产 id
+  ducking_db: -12                   # 人声出现时 BGM 压低 12dB
+  level: "人声 > 音效 > BGM"        # 音频层级(检查清单快速决策卡默认值)

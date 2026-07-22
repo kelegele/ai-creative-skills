@@ -20,7 +20,7 @@ metadata:
 
 ## 路径约定(第0步问用户,存运行变量)
 
-- **LIBRARY_ROOT** — 素材库根目录(默认 `<仓库外目录>/video-assets-library/`,本地目录或网盘同步目录均可)
+- **LIBRARY_ROOT** — 素材库根目录(默认 `<项目仓库>/.asset_library/`,隐藏目录、git 不跟踪;本地目录或网盘同步目录均可)
 - 分类体系、元数据 schema、命名规范见 `references/library-spec.md`,不要自造分类
 
 ## 主流程(7步)
@@ -42,7 +42,7 @@ metadata:
 ### 每项目结束
 - [ ] 提取可复用素材补充入库
 - [ ] 项目专属调色方案提炼为通用 LUT 入库
-- [ ] 优化后的时间线结构更新进"项目模板"
+- [ ] 优化后的时间线结构 / 风格配置 / 配音配置提炼进"全案模板"(`templates/`,引用不复制)
 - [ ] 项目专属素材归档(不入通用库,保留参考)
 
 ### 每季度
@@ -59,4 +59,4 @@ metadata:
 
 ## References
 
-- `references/library-spec.md` — 分类体系(目录树)、元数据 schema、命名规范、Remotion 调用示例、建库价值判断(哪些该入库/谨慎/不该)
+- `references/library-spec.md` — 分类体系(目录树)、元数据 schema、命名规范、Remotion 调用示例、建库价值判断(哪些该入库/谨慎/不该)、全案模板(templates/)详解
