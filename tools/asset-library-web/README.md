@@ -2,6 +2,13 @@
 
 扫描素材库,生成单文件 `gallery.html`(数据内联,双击 file:// 直接打开,**不起 server**)。
 
+## 前端技术栈(改模板前必读)
+
+- **antd v5 + Tailwind(均 CDN 加载)**,React 18 UMD;**首次打开需联网**
+- **Kimi 设计体系调教**:色彩/圆角/字体/动效 token 来自 kimi-design-skill(`tokens.json`),映射在模板 `tailwind.config` 与 antd `ConfigProvider` 里
+- **Babel 必须锁 v7**(`@babel/standalone@7`):v8 默认 automatic JSX runtime 会吐 `import` 语句,UMD 页面直接白屏
+- 分类 Tab:9 大类全展示(含 0)、中文显示、按 `library-spec.md` 目录树业务顺序——**类目增改要同步模板里的 `CAT_LABEL` / `CAT_ORDER`**(spec 第二节也有联动提醒)
+
 ## 用法
 
 ```bash

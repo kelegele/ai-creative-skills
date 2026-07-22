@@ -104,6 +104,8 @@
     └── 📁 feili-series/     # 示例:飞栗系列(见 skill examples/)
 ```
 
+> ⚠️ **增改一级类目必须两处同步**:本目录树 + `tools/asset-library-web/build_gallery.py` 的 `CAT_LABEL`(中文显示名)/ `CAT_ORDER`(Tab 顺序)。工具对枚举外目录会原样兜底显示,但中文名和规范序要靠手动同步。
+
 ---
 
 ## 三、元数据 schema(每件素材旁边放 `metadata.yaml`)
