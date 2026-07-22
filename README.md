@@ -27,8 +27,12 @@ npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-ca
 │   ├ harvest-topics/  素材转选题候选
 │   ├ submit-to-inbox/ 素材提交(带降级)
 │   ├ gzh-longform/   公众号长文(两阶段)
-│   └ gzh-illustration/ 公众号配图(HTML→截图)
+│   ├ gzh-illustration/ 公众号配图(HTML→截图)
+│   ├ gzh-typeset/    公众号排版(wechat.html)
+│   ├ remotion-video/  Remotion 视频创作
+│   └ video-asset-library/ 视频素材库管理
 ├ tools/            ← 独立工具/脚本
+│   └ asset-library-web/ 视频素材库静态橱窗(gallery.html)
 └ assets/           ← 共用素材/模板
 ```
 
@@ -59,6 +63,21 @@ npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-ca
 公众号长文配图:读占位 → HTML 设计 → Playwright 截图 → 回填(草稿/定版两态)。封面 900×383 + 正文宽 1080。
 
 → 详见 [`skills/gzh-illustration/SKILL.md`](skills/gzh-illustration/SKILL.md)
+
+### gzh-typeset
+公众号长文排版:读 article.md 输出全 inline 样式的 wechat.html,可直接复制粘贴进公众号后台。
+
+→ 详见 [`skills/gzh-typeset/SKILL.md`](skills/gzh-typeset/SKILL.md)
+
+### remotion-video
+Remotion 视频创作:前置检查清单(14 项)→ 分镜拆解 → 资产清单 → 代码生成 → 自检交付。Node 生态(npx),基准场景先行。
+
+→ 详见 [`skills/remotion-video/SKILL.md`](skills/remotion-video/SKILL.md)
+
+### video-asset-library
+视频素材库管理:建库/入库/盘点/维护全流程,skill 驱动写操作,素材和元信息不进 git。查看走静态橱窗 `tools/asset-library-web/`。
+
+→ 详见 [`skills/video-asset-library/SKILL.md`](skills/video-asset-library/SKILL.md)
 
 ## License
 

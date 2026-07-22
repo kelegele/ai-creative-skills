@@ -13,7 +13,10 @@ skills/submit-to-inbox/   # 素材提交(带降级) skill(通用版)
 skills/gzh-longform/      # 公众号长文(两阶段) skill
 skills/gzh-illustration/  # 公众号配图(HTML→截图) skill
 skills/gzh-typeset/       # 公众号排版(article.md→wechat.html) skill
+skills/remotion-video/    # Remotion 视频创作 skill
+skills/video-asset-library/ # 视频素材库管理 skill
 tools/                    # 独立工具/脚本
+tools/asset-library-web/  # 视频素材库静态橱窗(gallery.html)
 assets/                   # 共用素材/模板
 ```
 
@@ -174,3 +177,38 @@ uv run python skills/gzh-illustration/scripts/test_replace_placeholders.py
 - 基准段先行(同 text-to-card / gzh-illustration 教训),不一口气全量生成
 - 反色块 / 胶囊上线前**务必粘草稿实测**(`background` 在公众号偶尔有兼容细节)
 - 图片不跟随粘贴(公众号不吃本地路径,手动上传)
+
+### remotion-video
+
+用 Remotion(React 写视频)创作可程序化渲染的视频,遵循 `skills/remotion-video/SKILL.md` 工作流。
+
+**触发词:** "Remotion"、"做视频"、"视频创作"、"视频代码"、"分镜"
+
+**核心流程(第0步 + 7步):**
+0. 运行参数(PROJECT_DIR/OUTPUT_DIR/视频规格/素材来源)
+→ ① 需求确认 → ② 前置检查(14 项清单,不得跳过)→ ③ 分镜拆解(逐场景审)→ ④ 资产清单 → ⑤ 代码生成(Video.tsx/scenes/components/constants)→ ⑥ 自检 → ⑦ 交付
+
+**关键规则:**
+- **Node 生态**:用 npx/npm,不用 uv;预览 `npx remotion studio`,渲染 `npx remotion render`
+- 所有时间描述转换为帧数;动画优先 `spring()`/`interpolate()`
+- 基准场景先行:第 1 个场景渲染小样确认风格后再批量(同 text-to-card 基准卡原则)
+- 先低清小样(720p)确认节奏,再出正片
+- 素材先从 video-asset-library 库里取,别从零造;项目结束回收可复用素材入库
+- 前置检查清单与快速决策卡见 `references/checklist.md`
+
+### video-asset-library
+
+视频制作素材库的建库/入库/盘点/维护,遵循 `skills/video-asset-library/SKILL.md` 工作流。
+
+**触发词:** "素材库"、"视频素材"、"素材入库"、"素材管理"
+
+**核心流程(第0步 + 7步):**
+0. LIBRARY_ROOT(素材库根目录,问用户)
+→ ① 需求分析 → ② 库结构设计 → ③ 现有资产盘点 → ④ 缺失资产识别 → ⑤ 入库(重命名+metadata.yaml+缩略图)→ ⑥ 索引与橱窗重建 → ⑦ 使用指南输出
+
+**关键规则:**
+- **素材本体 + 元信息 + 生成物不进 git**(库目录、`*.metadata.yaml`、`gallery.html` 已 gitignore);git 里只有规范和查看器代码
+- skill 是唯一写入方;web 橱窗只读
+- 单一数据源 = 文件系统目录 + 每件素材旁的 metadata.yaml;索引/橱窗可随时重建
+- 分类体系/元数据 schema/命名规范见 `references/library-spec.md`,不自造分类
+- 查看器:`tools/asset-library-web/`,`uv run build_gallery.py <LIBRARY_ROOT>` 生成 gallery.html(数据内联,file:// 直接打开,不起 server)
