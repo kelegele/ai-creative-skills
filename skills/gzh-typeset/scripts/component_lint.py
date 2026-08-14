@@ -23,7 +23,8 @@ RULES = [
     (r"<p\s", r"color", "正文/段落颜色"),
     (r"<h2\s", r"font-size", "H2 章节字号"),
     (r"<h2\s", r"color", "H2 章节颜色"),
-    (r"<span[^>]*style", r"background", "内联强调/胶囊背景"),
+    (r"<span[^>]*style=\"[^\"]*background:\s*#FF5700", r"background", "反色强调(白字橙底)"),
+    (r"<span[^>]*style=\"[^\"]*background:\s*#FFF7F2", r"background", "胶囊(浅橙底)"),
     (r"<section\s", r"background", "容器块背景"),
     (r"<section\s", r"border-left", "容器块左边条"),
     (r"<blockquote\s", r"border-left", "引用块左边条"),
@@ -50,6 +51,9 @@ def main():
     with open(args.file, encoding="utf-8") as f:
         html = f.read()
 
+    # 剥掉 head 里的 <style> 块(本地预览容器,不是正文组件,避免误报)
+    html = re.sub(r"<style.*?</style>", "", html, flags=re.S)
+
     issues = []
 
     for tag_pat, prop, comp_name in RULES:
@@ -68,6 +72,8 @@ def main():
             if not style_attr:
                 continue
             v = prop_value(style_attr, prop)
+            if v == "<无>":
+                continue  # 特殊用途标签(章节标签行/图片行等)无该属性,不参与对比
             values[v].append(m.start())
         if len(values) > 1:
             most = max(values, key=lambda k: len(values[k]))
