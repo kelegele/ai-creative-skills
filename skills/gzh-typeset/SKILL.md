@@ -1,11 +1,11 @@
 ---
 name: gzh-typeset
-description: 公众号长文排版。读 article.md 输出可复制粘贴公众号的 wechat.html(全 inline 样式,套品牌排版:刊头条/章节标签/胶囊/功能卡/署名块/三档关键词强调)。当用户给公众号长文排版、生成 wechat.html、问公众号怎么排版或复制粘贴排版工具时使用。触发词:公众号排版、长文排版、wechat.html、排版、typeset。
-version: 0.1.0
+description: 公众号长文排版。读 article.md 输出可复制粘贴公众号的 wechat.html(全 inline 样式,套品牌排版:刊头条/章节标签/胶囊/功能卡/署名块/三档关键词强调);支持多主题注册(theme-generator)、非 Markdown 输入归一化(format-normalize)、合规校验脚本(validate_gzh_html)。当用户给公众号长文排版、生成 wechat.html、问公众号怎么排版或复制粘贴排版工具时使用。触发词:公众号排版、长文排版、wechat.html、排版、typeset。
+version: 0.2.0
 author: Kelegele
 license: MIT
 metadata:
-  tags: [content, wechat, gongzhonghao, typeset, publish, html, inline-style]
+  tags: [content, wechat, gongzhonghao, typeset, publish, html, inline-style, theme, validate]
 ---
 
 # gzh-typeset 公众号长文排版
@@ -18,11 +18,14 @@ metadata:
 
 ## 工作流
 
-### 第 0 步 运行参数 + 读规范
+### 第 0 步 运行参数 + 输入归一化 + 选主题
 
 问用户:
 - **目标文章路径**(如 `Content/20260626-xxx/article.md`)
-- **品牌配置**(默认见下,用户可改)
+
+**输入归一化**:文章不是 Markdown(docx/pdf/txt/纯文本/网页富文本)→ 先按 `references/format-normalize.md` 转成 Markdown 草稿并让用户确认结构,再往下。md 直接进下一步。
+
+**选主题**(多主题时):读 `references/theme-index.md`(主题清单,单一来源)。默认 = 飞栗品牌(`references/themes/feili/theme.md`)。用户指定主题 → 直接用;题材有契合 → 单问确认;无契合 → 列主题选。想换风格 → 走 `references/theme-generator.md` 注册新主题。theme-index 为空 → 用默认飞栗模板。
 
 读目的仓库 `AGENTS.md`/`CLAUDE.md` 的「公众号长文创作」节,确认:文字小标题(不用 ①②③)、正文无 #tag、长文节奏(段落连贯,不是卡片短句)。
 
@@ -42,8 +45,15 @@ uv run python scripts/punct_normalize.py <article.md>
 
 从 article.md **逐段复制正文文字**(不手敲,防错字),套「样式规范」的 inline 模板。图片用相对路径 `images/xxx.png`。输出 `Content/<组>/wechat.html`。
 
-### 第 4 步 自检
+### 第 4 步 自检(校验脚本 + 人工清单)
 
+**必跑校验脚本(把平台红线从自觉变确定性):**
+```bash
+uv run python scripts/validate_gzh_html.py <wechat.html>   # ERROR 清零才算过
+uv run python scripts/component_lint.py <wechat.html>      # 组件样式一致性(不一致需人工确认)
+```
+
+人工清单:
 - [ ] 正文标点全角(，：（）？)
 - [ ] inline style 完整;CSS / markdown 语法 / URL 的半角标点没被破坏
 - [ ] 关键词强调三档克制(见下),标差异点不标重复标签
@@ -52,7 +62,7 @@ uv run python scripts/punct_normalize.py <article.md>
 
 ### 第 5 步 预览 + 实测提醒
 
-- 浏览器 `file://` 打开预览
+- **本地预览**:`uv run python scripts/wrap_preview.py <wechat.html>` 注入预览容器,浏览器 `file://` 打开看(不影响粘贴)
 - **务必提醒用户**:复制粘贴到公众号草稿**实测一次**,尤其反色块(白字橙底)、胶囊的 `background` 兼容性;图片需手动上传(公众号不吃本地路径)
 
 ## 品牌配置(项目级,换品牌改这里)
@@ -159,6 +169,21 @@ uv run python scripts/punct_normalize.py <article.md 或 wechat.html>
 - 不处理图片上传公众号(手动)
 - 不做代码块语法高亮(本期长文无代码块,预留)
 - 不调用 md-to-wechat / 不推送(用户人工)
+- 不内置多套预设主题(按需注册,见 references/theme-generator.md)
+
+## references/
+
+- `format-normalize.md` — 非 Markdown 输入(docx/pdf/txt/富文本)→ md 归一化规则
+- `theme-generator.md` — 主题注册机制(设计变量 + 组件模板 + theme-index)
+- `themes/feili/theme.md` — 默认飞栗品牌主题(设计变量 + 组件模板)
+
+## scripts/
+
+- `punct_normalize.py` — 标点全角化(遮罩保护 frontmatter/URL/md 语法/CSS)
+- `validate_gzh_html.py` — 平台红线确定性校验(禁 style/div/class/id/position/float/@media/CSS 变量;查裸文本)
+- `component_lint.py` — 组件样式一致性 lint(同类组件字号/颜色/行高统一)
+- `extract_docx.py` — docx 文本提取(纯 stdlib,标题样式映射 #)
+- `wrap_preview.py` — 本地预览容器注入(不影响粘贴)
 
 ## 经验教训(踩坑记录)
 
@@ -169,3 +194,5 @@ uv run python scripts/punct_normalize.py <article.md 或 wechat.html>
 - **容器块用 `<section>` 不用 `<div>`,`border` 简写丢样式改用 `background`** —— 公众号编辑器对 `<div>` 的 inline style 支持差,粘贴常整个丢样式(公众号原生用 `<section>`);`border:1px solid` 四边简写最容易丢,换 `background-color`(粘贴最稳),单边 `border-left` 通常保留。所有容器块(署名 / 功能卡 / 引用框)一律 `<section>`,要边框感时用背景色代替。
 - **图片不跟随粘贴** —— 公众号不吃本地图片路径,文字粘贴后图片位手动上传插入。
 - **基准段先行** —— 刊头条 + H1 + 一个章节定风格,确认后批量,避免全量返工(同 gzh-illustration / text-to-card 教训)。
+- **平台红线要脚本化,不靠模型自觉** —— 踩坑记录里"禁 div / 禁 class / inline 样式 / border 简写丢样式"这些红线,模型每次排版都可能忘;`validate_gzh_html.py` 把红线变成确定性检查,ERROR 清零才算过。脚本是兜底,不是替代人工判断(它查不了"强调克制不克制")。
+- **校验脚本要防误报** —— 本地预览容器(`wrap_preview.py` 注入的 `<style>`)在 head 里,公众号粘贴不受影响;validate 只查 body 内的违规,head 预览样式不算 ERROR(实现时区分 body 与 head)。
