@@ -111,6 +111,8 @@ summary: <公众号摘要,50-80 字,抢眼钩子,见「摘要写法」>
 
 定稿交付时,把这 5 项清单给用户确认,缺一不可。
 
+**⚠️ summary 必须写进 article.md 文件**(不是口头交付):第 6 步定稿时,把选定的摘要写入 `article.md` 顶部(frontmatter `summary:` 字段或 `> 摘要:` 注释块,3 版供选)。检查标准:定稿后的 article.md 文件里**能看到 summary 内容**;没有 = 定稿不完整,补上再交付。曾犯:摘要只在对话里给,article.md 没写,用户要求"Article 里面要有摘要"。详见「摘要写法」。
+
 ## 摘要写法
 
 公众号摘要(发布时填后台"摘要"字段,分享卡片 / 订阅展示用),**不是正文缩写**,要抢眼、让人想点开。
@@ -142,3 +144,4 @@ uv run python scripts/wordcount.py <article.md> --min 1000 --max 99999
 - **二手素材不当原话** —— 知乎/公众号整理的数字和战绩不许当原话引用,查证一手来源。
 - **选题从 backlog 不从 inbox** —— inbox 是 harvest-topics 的输入(原始素材),backlog 才是加工过的选题。
 - **字数脚本不做禁用词** —— 禁用词在目的仓库是自然语言段落,脚本解析不了;归 agent 自检。
+- **摘要必须写进 article.md,不是口头交付** —— 只把摘要放对话里、article.md 没写,被用户纠正"Article 里面要有摘要"。定稿时把选定的 summary 写入 article.md(frontmatter `summary:` 或 `> 摘要:` 块),交付时文件里能直接看到。
