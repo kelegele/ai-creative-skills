@@ -5,6 +5,8 @@
 - 尺寸:900×383(2.35:1,公众号标准封面比例)
 - HTML:内部固定 900×383,body 设 width:900px; min-height:383px
 - 截图:viewport 宽 900,full_page 截图(高度刚好 383)
+- **命名独立**:`images/cover.png`(或 `images/cover-{slug}.png`),**不在 `gzh-imaget-{N}.png` 序列里**
+- **不进正文**:封面不回填进 article.md(单独上传公众号后台封面位),与正文配图分离
 
 ## 正文配图
 
