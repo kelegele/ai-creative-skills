@@ -39,11 +39,11 @@ uv run python scripts/punct_normalize.py <article.md>
 
 ### 第 2 步 基准段先行(风格确认)
 
-先只生成**刊头条 + H1 + 开头一段 + 一个 H2 章节(含章节标签)**,让用户在浏览器看。**用户确认风格后才批量生成全文。** 不一口气全生成(同 text-to-card/gzh-illustration 教训)。
+先只生成**刊头条 + 开头一段 + 一个 H2 章节(含章节标签)**(H1 标题仅本地预览时临时加,不进正文),让用户在浏览器看。**用户确认风格后才批量生成全文。** 不一口气全生成(同 text-to-card/gzh-illustration 教训)。
 
 ### 第 3 步 生成完整 wechat.html
 
-从 article.md **逐段复制正文文字**(不手敲,防错字),套「样式规范」的 inline 模板。图片用相对路径 `images/xxx.png`。输出 `Content/<组>/wechat.html`。
+从 article.md **逐段复制正文文字**(不手敲,防错字),套「样式规范」的 inline 模板。**wechat.html 不含 H1 标题**(公众号标题填后台独立输入框,正文从刊头条开始)。图片用相对路径 `images/xxx.png`。输出 `Content/<组>/wechat.html`。
 
 ### 第 4 步 自检(校验脚本 + 人工清单)
 
@@ -91,10 +91,9 @@ uv run python scripts/component_lint.py <wechat.html>      # 组件样式一致�
 </p>
 ```
 
-**H1 标题**:
-```html
-<h1 style="text-align:center;font-size:22px;font-weight:bold;color:#1a1a1a;margin:8px 0 24px;line-height:1.4;letter-spacing:0.5px;">标题</h1>
-```
+**H1 标题(⚠️ 不进正文)**:
+> 公众号标题填在后台**独立标题输入框**,不粘贴进正文。wechat.html **不包含 H1 标题**,正文从刊头条直接开始。标题单独提供给用户(发布时手动填输入框)。
+> 若需本地预览标题效果,可在预览容器里临时加 H1(仅预览,不随正文粘贴),或直接省略。
 
 **H2 章节(性质标签 + 左色条标题)**:
 ```html
@@ -196,3 +195,4 @@ uv run python scripts/punct_normalize.py <article.md 或 wechat.html>
 - **基准段先行** —— 刊头条 + H1 + 一个章节定风格,确认后批量,避免全量返工(同 gzh-illustration / text-to-card 教训)。
 - **平台红线要脚本化,不靠模型自觉** —— 踩坑记录里"禁 div / 禁 class / inline 样式 / border 简写丢样式"这些红线,模型每次排版都可能忘;`validate_gzh_html.py` 把红线变成确定性检查,ERROR 清零才算过。脚本是兜底,不是替代人工判断(它查不了"强调克制不克制")。
 - **校验脚本要防误报** —— 本地预览容器(`wrap_preview.py` 注入的 `<style>`)在 head 里,公众号粘贴不受影响;validate 只查 body 内的违规,head 预览样式不算 ERROR(实现时区分 body 与 head)。
+- **公众号标题不进正文** —— 标题填在后台独立输入框,wechat.html 不包含 H1;曾把 H1 排进正文(基准段预览含 H1),用户纠正"标题是填在另外一个输入框的"。正文从刊头条直接开始,标题单独提供给用户手动填。
