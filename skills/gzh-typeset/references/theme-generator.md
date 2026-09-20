@@ -33,8 +33,8 @@
 
 ## 与飞栗默认的关系
 
-- 默认主题 = 飞栗品牌(`references/themes/feili/theme.md`,即当前 SKILL.md 里的品牌配置搬进去)
-- 不删 SKILL.md 里的品牌配置,theme.md 是它的结构化版本;两者保持同步(改一个另一个也改)
+- 默认主题 = 飞栗品牌(`references/themes/feili/theme.md`),即原 SKILL.md「品牌配置」的结构化版本
+- **theme.md 是单一来源**:SKILL.md 的「品牌配置」节只留指向,改品牌色/文案只改 theme.md,两边不再人工同步
 
 ## 不做(YAGNI)
 

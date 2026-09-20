@@ -23,7 +23,7 @@ metadata:
 - **目标时长**(分钟)— 决定字数(中文口播约 200-260 字/分钟)
 - **渠道** — 播客 / 视频口播(两者共用同一逐字稿)
 
-读目的仓库 `AGENTS.md`/`CLAUDE.md` 提取人设(复用 gzh-longform `references/persona-reading.md` 字段表:人设口吻 / 目标人群 / 定位 / 禁用词 / 创作规范)。关键字段缺失 → 停下问用户。**同时读目的仓库已发口播稿/文案**,校准品牌风格。
+读目的仓库 `AGENTS.md`/`CLAUDE.md` 提取人设(字段表见本 skill `references/persona-reading.md`:人设口吻 / 目标人群 / 定位 / 禁用词 / 创作规范)。关键字段缺失 → 停下问用户。**同时读目的仓库已发口播稿/文案**,校准品牌风格。
 
 ### 第 1 步 接收选题/素材
 
@@ -92,5 +92,5 @@ metadata:
 草稿每版存档(`v1`/`v2`/...),供版本对比。调稿结束把各轮经验提炼进 `references/tuning-lessons.md`。
 
 ## references/
-- `persona-reading.md` — 复用 gzh-longform 的思路(读目的仓库人设)
+- `persona-reading.md` — 人设读取规范(字段表;与 gzh-longform 同源复制的独立副本)
 - `tuning-lessons.md` — 调稿经验库(13 条:口语化/对话感/节奏标注/标题/品牌/内容优先/流程,附用户原话)

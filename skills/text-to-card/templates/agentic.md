@@ -3,6 +3,7 @@
 > Source: [Open Design — Agentic](https://open-design.ai/zh/plugins/systems/agentic)
 > Category: Themed & Unique
 > Conversational AI-first interface with minimal controls, clear outcomes, and delegated task flows for agentic workflows.
+> 注:本模板保留 open-design 原版主色 `#FF5701`;飞栗对外内容(配图/公众号排版)统一用品牌橙 `#FF5700`(见 gzh-illustration design-system / gzh-typeset feili 主题)。
 
 ## Color
 

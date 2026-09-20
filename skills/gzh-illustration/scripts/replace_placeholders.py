@@ -4,9 +4,10 @@
 用法:
   uv run python replace_placeholders.py <article.md> --mode draft
   uv run python replace_placeholders.py <article.md> --mode final
+  加 --yes 跳过确认(自动化场景)。
 
-草稿态:占位块下方插入图片,保留占位描述。
-定版态:删除所有 🖼️ 占位块,只留图片。运行前备份 article.md.bak。
+草稿态:占位块下方插入图片,保留占位描述。自供图路径先校验,**缺失报警不回填**
+(别静默生成错误图片);定版态:删除所有 🖼️ 占位块,只留图片。运行前备份 article.md.bak。
 """
 import argparse
 import re
@@ -69,25 +70,47 @@ def _clean_blank_lines(text: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", text)
 
 
+def _selfsupplied_missing(phs: list, base_dir: Path) -> list:
+    """自供图路径校验:相对路径按文章所在目录解析,返回路径不存在的占位。"""
+    missing = []
+    for ph in phs:
+        if ph["source"] != "自供":
+            continue
+        p = Path(ph["desc"])
+        if not p.is_absolute():
+            p = base_dir / p
+        if not p.exists():
+            missing.append(ph)
+    return missing
+
+
 def main():
     parser = argparse.ArgumentParser(description="占位回填(草稿/定版)")
     parser.add_argument("article", help="article.md 路径")
     parser.add_argument("--mode", choices=["draft", "final"], required=True)
+    parser.add_argument("--yes", "-y", action="store_true", help="跳过确认(自动化场景)")
     args = parser.parse_args()
 
     path = Path(args.article)
     text = path.read_text(encoding="utf-8")
     phs = parse_placeholders(text)
 
-    gen = sum(1 for p in phs if p["source"] != "自供")
-    sup = len(phs) - gen
-    print(f"将处理 {len(phs)} 处占位({gen} 生成 / {sup} 自供),mode={args.mode}")
-    sys.stdout.write("回车继续: ")
-    sys.stdout.flush()
-    input()
+    # 自供图路径缺失:报警 + 不回填(教训:别静默生成错误图片)
+    missing = _selfsupplied_missing(phs, path.parent)
+    for ph in missing:
+        print(f"  ⚠️ 自供图路径不存在,跳过回填:{ph['desc']}(占位 {ph['seq']})")
+    todo = [ph for ph in phs if ph not in missing]
+
+    gen = sum(1 for p in todo if p["source"] != "自供")
+    sup = len(todo) - gen
+    print(f"将处理 {len(todo)} 处占位({gen} 生成 / {sup} 自供),mode={args.mode}")
+    if not args.yes:
+        sys.stdout.write("回车继续: ")
+        sys.stdout.flush()
+        input()
 
     if args.mode == "draft":
-        result = replace_draft(text, phs)
+        result = replace_draft(text, todo)
     else:
         backup = path.with_suffix(path.suffix + ".bak")
         shutil.copy2(path, backup)

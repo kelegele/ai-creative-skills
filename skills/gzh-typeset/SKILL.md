@@ -65,17 +65,9 @@ uv run python scripts/component_lint.py <wechat.html>      # 组件样式一致�
 - **本地预览**:`uv run python scripts/wrap_preview.py <wechat.html>` 注入预览容器,浏览器 `file://` 打开看(不影响粘贴)
 - **务必提醒用户**:复制粘贴到公众号草稿**实测一次**,尤其反色块(白字橙底)、胶囊的 `background` 兼容性;图片需手动上传(公众号不吃本地路径)
 
-## 品牌配置(项目级,换品牌改这里)
+## 品牌配置(单一来源:theme.md)
 
-- **主色**:`#FF5700`
-- **辅色(浅橙底)**:`#FFF7F2`
-- **刊头条文案**:
-  - 📖 分享我所知道的AI技巧笔记
-  - 🧐 多实践 · 挖场景 · 让复杂变简单
-- **署名块**:
-  - 品牌:飞栗.ai
-  - 定位语:多实践 · 挖场景 · 让复杂变简单
-  - 关注引导:关注我,从放弃学习到驾驭AI 👇
+品牌色值、刊头条文案、署名块等变量与组件模板,单一来源在 **`references/themes/feili/theme.md`**(主题清单见 `references/theme-index.md`)。本文件不重复维护品牌配置——改品牌只改 theme.md。下面「样式规范」的 inline 模板即 feili 主题实例(`{{primary}}`=#FF5700、`{{accent_bg}}`=#FFF7F2)。
 
 ## 样式规范(inline 模板,复制复用,不手敲)
 

@@ -1,6 +1,6 @@
 # 主题:feili(飞栗品牌,默认)
 
-> 默认主题。对应 SKILL.md「品牌配置 / 样式规范」。改这里与改 SKILL.md 品牌配置需同步。
+> 默认主题,品牌配置**单一来源**(SKILL.md「品牌配置」节只留指向,改品牌只改这里)。
 
 ## 设计变量
 
@@ -26,7 +26,10 @@
 </p>
 ```
 
-**H1 标题**:
+**H1 标题(⚠️ 不进正文)**:
+
+> 公众号标题填后台**独立标题输入框**,wechat.html 不包含 H1,正文从刊头条开始。此模板仅本地预览时临时使用(wrap_preview 容器内),不随正文粘贴。
+
 ```html
 <h1 style="text-align:center;font-size:22px;font-weight:bold;color:{{heading_color}};margin:8px 0 24px;line-height:1.4;letter-spacing:0.5px;">标题</h1>
 ```

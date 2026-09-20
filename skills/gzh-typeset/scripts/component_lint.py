@@ -5,7 +5,10 @@
 行高/边距必须统一,不一致 = 视觉杂乱)。不做语法校验(那是 validate_gzh_html.py 的活)。
 
 用法:
-    uv run python component_lint.py <file.html>
+    uv run python component_lint.py <file.html> [--primary #FF5700] [--accent #FFF7F2]
+
+主题色用 --primary / --accent 传入(默认 feili 主题;换主题排版时传对应 theme.md 的
+primary / accent_bg,否则反色/胶囊规则静默失效)。
 
 退出码: 1 = 有不一致(WARN 级别,需人工确认); 0 = 通过。
 """
@@ -16,19 +19,25 @@ from collections import defaultdict
 
 
 # 按标签 + 关键 style 特征归组,组内比对该特征的取值是否统一
-# (标签, style 中的属性正则) → 组件名
-RULES = [
+# (标签, style 中的属性正则) → 组件名;主题色规则由 build_rules 动态生成
+BASE_RULES = [
     (r"<p\s", r"font-size", "正文/段落字号"),
     (r"<p\s", r"line-height", "正文/段落行高"),
     (r"<p\s", r"color", "正文/段落颜色"),
     (r"<h2\s", r"font-size", "H2 章节字号"),
     (r"<h2\s", r"color", "H2 章节颜色"),
-    (r"<span[^>]*style=\"[^\"]*background:\s*#FF5700", r"background", "反色强调(白字橙底)"),
-    (r"<span[^>]*style=\"[^\"]*background:\s*#FFF7F2", r"background", "胶囊(浅橙底)"),
     (r"<section\s", r"background", "容器块背景"),
     (r"<section\s", r"border-left", "容器块左边条"),
     (r"<blockquote\s", r"border-left", "引用块左边条"),
 ]
+
+
+def build_rules(primary: str, accent: str) -> list:
+    """反色/胶囊规则依赖主题色,按所选主题动态生成。"""
+    return BASE_RULES[:5] + [
+        (rf"<span[^>]*style=\"[^\"]*background:\s*{re.escape(primary)}", r"background", "反色强调(白字主题底)"),
+        (rf"<span[^>]*style=\"[^\"]*background:\s*{re.escape(accent)}", r"background", "胶囊(浅色主题底)"),
+    ] + BASE_RULES[5:]
 
 
 def extract_style_attr(tag_html: str) -> str:
@@ -46,6 +55,8 @@ def prop_value(style_attr: str, prop: str) -> str:
 def main():
     ap = argparse.ArgumentParser(description="组件一致性 lint")
     ap.add_argument("file", help="HTML 文件路径")
+    ap.add_argument("--primary", default="#FF5700", help="主题主色(反色强调规则用,默认 feili)")
+    ap.add_argument("--accent", default="#FFF7F2", help="主题辅色(胶囊规则用,默认 feili)")
     args = ap.parse_args()
 
     with open(args.file, encoding="utf-8") as f:
@@ -56,7 +67,7 @@ def main():
 
     issues = []
 
-    for tag_pat, prop, comp_name in RULES:
+    for tag_pat, prop, comp_name in build_rules(args.primary, args.accent):
         matches = list(re.finditer(tag_pat, html))
         if len(matches) < 2:
             continue  # 同类组件不足 2 个,无从对比

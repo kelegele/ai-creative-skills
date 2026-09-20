@@ -6,6 +6,7 @@
 2. CSS 用了某字重,但 <link> 没加载该字重 → 浏览器合成 fake bold/light(笔画失真)
 
 典型坑:card-number font-weight:600,但 link 只 Playfair:wght@400;700;900 → 600 合成。
+扫描所有 Google Fonts <link> 和所有 <style> 块;font-weight 的 bold/normal 归一为 700/400。
 
 用法:uv run python check_fonts.py <卡片目录>
 退出码:0 = 通过,1 = 有问题(定版前必须 0)。
@@ -17,44 +18,43 @@ GENERIC = {'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
 
 
 def parse_loaded(html):
-    """从 Google Fonts <link> 解析 {字体名: {字重集合}}"""
-    m = re.search(r'href="(https://fonts\.googleapis\.com/css2\?[^"]+)"', html)
-    if not m:
-        return {}
-    qs = m.group(1).split('?', 1)[1]
+    """从所有 Google Fonts <link> 解析 {字体名: {字重集合}}(多 link 合并)"""
     loaded = {}
-    for part in qs.split('&'):
-        if not part.startswith('family='):
-            continue
-        spec = part[7:]
-        name, _, rest = spec.partition(':')
-        name = name.replace('+', ' ')
-        weights = set()
-        if rest.startswith('wght@'):
-            weights = set(rest[5:].split(';'))
-        loaded[name] = weights
+    for m in re.finditer(r'href="(https://fonts\.googleapis\.com/css2\?[^"]+)"', html):
+        qs = m.group(1).split('?', 1)[1]
+        for part in qs.split('&'):
+            if not part.startswith('family='):
+                continue
+            spec = part[7:]
+            name, _, rest = spec.partition(':')
+            name = name.replace('+', ' ')
+            weights = set()
+            if rest.startswith('wght@'):
+                weights = set(rest[5:].split(';'))
+            loaded.setdefault(name, set()).update(weights)
     return loaded
 
 
+_WEIGHT_ALIASES = {'normal': '400', 'bold': '700'}
+
+
 def parse_usage(html):
-    """从 <style> 解析 [(主字体, 字重)] —— 每条 CSS 规则取 font-family 第一个非 generic 字体"""
-    m = re.search(r'<style[^>]*>(.*?)</style>', html, re.S)
-    if not m:
-        return []
-    css = m.group(1)
+    """从所有 <style> 解析 [(主字体, 字重)];bold/normal 归一为 700/400"""
     usage = []
-    for block in re.finditer(r'\{([^}]*)\}', css):
-        body = block.group(1)
-        fm = re.search(r'font-family:\s*([^;]+)', body)
-        if not fm:
-            continue
-        families = [f.strip().strip("'\"") for f in fm.group(1).split(',')]
-        primary = next((f for f in families if f and f not in GENERIC), None)
-        if not primary:
-            continue
-        fw = re.search(r'font-weight:\s*(\d+)', body)
-        weight = fw.group(1) if fw else '400'
-        usage.append((primary, weight))
+    for sm in re.finditer(r'<style[^>]*>(.*?)</style>', html, re.S):
+        css = sm.group(1)
+        for block in re.finditer(r'\{([^}]*)\}', css):
+            body = block.group(1)
+            fm = re.search(r'font-family:\s*([^;]+)', body)
+            if not fm:
+                continue
+            families = [f.strip().strip("'\"") for f in fm.group(1).split(',')]
+            primary = next((f for f in families if f and f not in GENERIC), None)
+            if not primary:
+                continue
+            fw = re.search(r'font-weight:\s*(\d+|bold|normal)', body, re.I)
+            weight = fw.group(1).lower() if fw else '400'
+            usage.append((primary, _WEIGHT_ALIASES.get(weight, weight)))
     return usage
 
 

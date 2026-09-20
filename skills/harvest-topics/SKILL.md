@@ -37,7 +37,7 @@ metadata:
 列出待加工素材(N 条),告诉用户。
 
 ### ② 逐条解析(按 type)
-- **link** → `/browse` skill 抓内容(项目强制)
+- **link** → `/browse` skill 抓内容(项目强制);环境没有 /browse → 用 WebFetch / 内置网页抓取兜底(同 submit-to-inbox)
 - **text** → 直接读正文
 - **image** → 多模态理解(`images/` 下的图)
 
@@ -83,7 +83,7 @@ metadata:
 
 ## 依赖
 - gh cli(优先)/ GitHub token(次)
-- 抓链接:`/browse` skill(项目强制)
+- 抓链接:`/browse` skill(项目强制),无则 WebFetch 兜底
 - 图片理解:多模态(Claude 原生)
 
 ## skill 自身结构

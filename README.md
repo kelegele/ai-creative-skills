@@ -29,6 +29,7 @@ npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-ca
 │   ├ gzh-longform/   公众号长文(两阶段)
 │   ├ gzh-illustration/ 公众号配图(HTML→截图)
 │   ├ gzh-typeset/    公众号排版(wechat.html)
+│   ├ oral-script/    口播稿创作与调稿(播客/视频)
 │   └ video-asset-library/ 视频素材库管理
 ├ tools/            ← 独立工具/脚本
 │   └ asset-library-web/ 视频素材库静态橱窗(gallery.html)
@@ -67,6 +68,11 @@ npx skills add https://github.com/kelegele/ai-creative-skills --skill text-to-ca
 公众号长文排版:读 article.md 输出全 inline 样式的 wechat.html,可直接复制粘贴进公众号后台。
 
 → 详见 [`skills/gzh-typeset/SKILL.md`](skills/gzh-typeset/SKILL.md)
+
+### oral-script
+口播稿(播客/视频)创作与调稿:内容设计 → 带节奏标注的逐字稿 → 逐轮调稿到定稿。读目的仓库人设,内置 13 条调稿经验库(附用户原话)。
+
+→ 详见 [`skills/oral-script/SKILL.md`](skills/oral-script/SKILL.md)
 
 ### video-asset-library
 视频素材库管理:建库/入库/盘点/维护全流程,skill 驱动写操作,素材和元信息不进 git。查看走静态橱窗 `tools/asset-library-web/`。

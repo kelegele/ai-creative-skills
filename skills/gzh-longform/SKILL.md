@@ -54,6 +54,8 @@ metadata:
 
 按研究简报(结构 + 字数预算)+ 人设口吻 + 内置爆款规律(见 `references/explosive-patterns.md`),生成 markdown 正文。agent 自选一个标题作默认,同时附 3-6 个候选。
 
+文章需要配图时,按 `../gzh-illustration/references/placeholder-format.md` 的占位格式,把占位**埋在对应章节段落后**(不堆文末;封面不进占位,独立出 cover.png,见 gzh-illustration「封面与正文配图必须分离」)。
+
 **第 5 步 自检**
 
 逐项过:

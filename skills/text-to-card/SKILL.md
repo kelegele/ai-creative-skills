@@ -163,8 +163,7 @@ text-to-card/
 │   ├── design-md-spec.md   # DESIGN.md 规范(自定义引导)
 │   └── im-agent-env.md     # IM 对话型 agent 环境适配
 ├── examples/               # 示例(非主流程)
-│   ├── reference-card-single.html  # 基准卡示例(delegate_task 锚点)
-│   └── matt-van-horn-25-tips.md    # 首次实战的25条完整内容
+│   └── reference-card-single.html  # 基准卡示例(delegate_task 锚点)
 └── scripts/
     ├── screenshot.py       # Playwright 截图
     └── check_fonts.py      # 字体字重一致性校验(定版前必跑)

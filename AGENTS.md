@@ -13,6 +13,7 @@ skills/submit-to-inbox/   # 素材提交(带降级) skill(通用版)
 skills/gzh-longform/      # 公众号长文(两阶段) skill
 skills/gzh-illustration/  # 公众号配图(HTML→截图) skill
 skills/gzh-typeset/       # 公众号排版(article.md→wechat.html) skill
+skills/oral-script/       # 口播稿创作与调稿 skill(通用版)
 skills/video-asset-library/ # 视频素材库管理 skill
 tools/                    # 独立工具/脚本
 tools/asset-library-web/  # 视频素材库静态橱窗(gallery.html)
@@ -176,6 +177,24 @@ uv run python skills/gzh-illustration/scripts/test_replace_placeholders.py
 - 基准段先行(同 text-to-card / gzh-illustration 教训),不一口气全量生成
 - 反色块 / 胶囊上线前**务必粘草稿实测**(`background` 在公众号偶尔有兼容细节)
 - 图片不跟随粘贴(公众号不吃本地路径,手动上传)
+
+### oral-script
+
+写口播稿(播客/视频)时,遵循 `skills/oral-script/SKILL.md` 的工作流。
+
+**触发词:** "口播稿"、"播客稿"、"逐字稿"、"生成口播"、"口播文案"、"调口播"
+
+**核心流程(第0步 + 5步):**
+0. 运行参数(OUTPUT_DIR/目标时长/渠道)+ 读目的仓库人设
+→ ① 接收选题/素材(backlog 取或当场给)→ ② 内容设计(先审"说什么",用户确认后才写)→ ③ 生成草稿(带节奏标注)→ ④ 逐轮调稿(用户主导,逐轮记录)→ ⑤ 定版校验(字数/标点/存档)
+
+**关键规则:**
+- 口播稿验收标准:**读一遍转文字,像平时说话**——允许填充词,杀书面缩写("真不是/即/亦")和伪专业词;真专业词带解释保留
+- 草稿必带**节奏标注**(`(停顿)`/`(停2秒)`/`(放慢)`/`(加重)`/`(笑)`/`↗` `↘`)
+- 先审"说什么"再改"怎么说":核心框架不能因表达改动丢失;一手素材实锤必须用,虚构数字标"假设/比如"
+- 调稿出"定稿感"完整稿让用户对整篇开火,不反复抛候选选择题;每轮记录用户原话/改动点/原因
+- 调稿经验库 `references/tuning-lessons.md`(13 条,附用户原话),生成与调稿前先读
+- 人设字段表 `references/persona-reading.md`;口播口语 vs 长文书面的语气分界见 gzh-longform `references/writing-tone.md`
 
 ### video-asset-library
 
