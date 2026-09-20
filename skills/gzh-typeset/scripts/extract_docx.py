@@ -13,10 +13,18 @@ import argparse
 import re
 import sys
 import zipfile
+from pathlib import Path
 from xml.sax.saxutils import unescape
 
 
 NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+
+
+def check_write_path(path: str) -> str:
+    """写入前校验:拒绝带 .. 的路径(路径穿越防护;绝对路径与普通相对路径不受影响)。"""
+    if ".." in Path(path).parts:
+        raise SystemExit(f"ERROR: 写入路径不允许包含 '..': {path}")
+    return path
 
 
 def extract_paragraphs(docx_path: str) -> list:
@@ -79,7 +87,7 @@ def main():
 
     out = "\n\n".join(lines) if args.headings else "\n".join(lines)
     if args.out:
-        with open(args.out, "w", encoding="utf-8") as f:
+        with open(check_write_path(args.out), "w", encoding="utf-8") as f:
             f.write(out + "\n")
         print(f"OK 写 {len(lines)} 段 → {args.out}")
     else:

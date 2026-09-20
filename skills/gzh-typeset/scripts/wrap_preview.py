@@ -13,6 +13,7 @@
 import argparse
 import re
 import sys
+from pathlib import Path
 
 
 PREVIEW_CSS = (
@@ -20,6 +21,13 @@ PREVIEW_CSS = (
     "max-width:{width}px;margin:40px auto;padding:0 24px;background:#fff;}}"
     "img{{max-width:100%;height:auto;}}"
 )
+
+
+def check_write_path(path: str) -> str:
+    """写入前校验:拒绝带 .. 的路径(路径穿越防护;绝对路径与普通相对路径不受影响)。"""
+    if ".." in Path(path).parts:
+        raise SystemExit(f"ERROR: 写入路径不允许包含 '..': {path}")
+    return path
 
 
 def main():
@@ -43,7 +51,7 @@ def main():
     else:
         html = f"<html><head><style>{css}</style></head>\n{html}\n</html>"
 
-    out = args.out or args.file
+    out = check_write_path(args.out or args.file)
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"OK 预览容器已注入 → {out}")
