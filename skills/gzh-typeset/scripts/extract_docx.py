@@ -20,11 +20,12 @@ from xml.sax.saxutils import unescape
 NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 
 
-def check_write_path(path: str) -> str:
-    """写入前校验:拒绝带 .. 的路径(路径穿越防护;绝对路径与普通相对路径不受影响)。"""
-    if ".." in Path(path).parts:
+def check_write_path(path: str) -> Path:
+    """写入前校验并规范化:拒绝带 .. 的路径(路径穿越防护),resolve 消解路径歧义。"""
+    p = Path(path)
+    if ".." in p.parts:
         raise SystemExit(f"ERROR: 写入路径不允许包含 '..': {path}")
-    return path
+    return p.resolve()
 
 
 def extract_paragraphs(docx_path: str) -> list:
@@ -87,8 +88,7 @@ def main():
 
     out = "\n\n".join(lines) if args.headings else "\n".join(lines)
     if args.out:
-        with open(check_write_path(args.out), "w", encoding="utf-8") as f:
-            f.write(out + "\n")
+        check_write_path(args.out).write_text(out + "\n", encoding="utf-8")
         print(f"OK 写 {len(lines)} 段 → {args.out}")
     else:
         print(out)

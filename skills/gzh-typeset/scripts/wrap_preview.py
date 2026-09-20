@@ -23,11 +23,12 @@ PREVIEW_CSS = (
 )
 
 
-def check_write_path(path: str) -> str:
-    """写入前校验:拒绝带 .. 的路径(路径穿越防护;绝对路径与普通相对路径不受影响)。"""
-    if ".." in Path(path).parts:
+def check_write_path(path: str) -> Path:
+    """写入前校验并规范化:拒绝带 .. 的路径(路径穿越防护),resolve 消解路径歧义。"""
+    p = Path(path)
+    if ".." in p.parts:
         raise SystemExit(f"ERROR: 写入路径不允许包含 '..': {path}")
-    return path
+    return p.resolve()
 
 
 def main():
@@ -52,8 +53,7 @@ def main():
         html = f"<html><head><style>{css}</style></head>\n{html}\n</html>"
 
     out = check_write_path(args.out or args.file)
-    with open(out, "w", encoding="utf-8") as f:
-        f.write(html)
+    out.write_text(html, encoding="utf-8")
     print(f"OK 预览容器已注入 → {out}")
     return 0
 
