@@ -12,7 +12,7 @@ CDN 加载(首次打开需联网)。数据内联,媒体用相对路径。
 
 约定:
     - 文件素材:同目录旁挂 `<原文件名>.metadata.yaml`
-    - 目录素材(如 Remotion 组件目录):目录内放 `metadata.yaml`
+    - 目录素材(如代码组件目录):目录内放 `metadata.yaml`
     - gallery.html 默认生成到 LIBRARY_ROOT 下
     - LIBRARY_ROOT、metadata.yaml、gallery.html 均不进 git(见仓库 .gitignore)
 """

@@ -19,7 +19,7 @@ uv run build_gallery.py <LIBRARY_ROOT>
 ## 约定
 
 - **文件素材**:同目录旁挂元数据 `<原文件名>.metadata.yaml`(如 `BRoll_City_Traffic_v01.mp4.metadata.yaml`)
-- **目录素材**(Remotion 组件等):目录内放 `metadata.yaml`
+- **目录素材**(代码组件等):目录内放 `metadata.yaml`
 - 元数据 schema 见 `skills/video-asset-library/references/library-spec.md`
 - gallery.html 生成在素材库根目录下,媒体预览用相对路径(file:// 可直接播放视频/音频/图片)
 

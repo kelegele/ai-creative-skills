@@ -1,16 +1,16 @@
 ---
 name: video-asset-library
-description: 视频制作素材库管理。建立、分类、维护 Remotion 视频可复用资产(B-Roll/转场/动效/音频/字体/LUT/代码组件),skill 驱动入库和盘点,静态 web 橱窗查看。当用户管理视频素材、建素材库、素材入库、盘点素材、查看素材库时使用。触发词:素材库, 视频素材, 素材入库, 素材管理, asset library, B-Roll。
+description: 视频制作素材库管理。建立、分类、维护视频制作可复用资产(B-Roll/转场/动效/音频/字体/LUT/代码组件),skill 驱动入库和盘点,静态 web 橱窗查看。当用户管理视频素材、建素材库、素材入库、盘点素材、查看素材库时使用。触发词:素材库, 视频素材, 素材入库, 素材管理, asset library, B-Roll。
 version: 0.1.0
 author: Kelegele
 license: MIT
 metadata:
-  tags: [video, asset-management, remotion, b-roll, motion-graphics, library]
+  tags: [video, asset-management, b-roll, motion-graphics, library]
 ---
 
 # 视频制作素材库管理
 
-系统化建立、分类、维护视频制作中的可复用资产,提升 Remotion 视频创作的效率和一致性。
+系统化建立、分类、维护视频制作中的可复用资产,提升视频创作的效率和一致性。
 
 ## 核心原则(先记住)
 
@@ -35,7 +35,7 @@ metadata:
    cd <repo>/tools/asset-library-web && uv run build_gallery.py <LIBRARY_ROOT>
    ```
    生成 `gallery.html`(数据内联,双击 file:// 直接打开,不起 server)
-7. **使用指南输出** — 快速索引表 + Remotion 代码引用示例(见 `references/library-spec.md` 第五节)
+7. **使用指南输出** — 快速索引表 + 代码引用示例(见 `references/library-spec.md` 第五节)
 
 ## 维护节奏
 
@@ -50,13 +50,11 @@ metadata:
 - [ ] 检查授权到期情况(字体/音乐/视频)
 - [ ] 更新元数据标签
 - [ ] 备份验证(抽查恢复测试)
-- [ ] Remotion 升级后组件版本兼容性检查
 
 ## 配合
 
-- **remotion-video** — 做视频时先从本库取可复用素材(转场/动效/音频/组件),项目结束回收可复用素材入库
 - **查看器代码**:`tools/asset-library-web/`(本仓库,git 跟踪);**生成的索引/橱窗**:git 不跟踪
 
 ## References
 
-- `references/library-spec.md` — 分类体系(目录树)、元数据 schema、命名规范、Remotion 调用示例、建库价值判断(哪些该入库/谨慎/不该)、全案模板(templates/)详解
+- `references/library-spec.md` — 分类体系(目录树)、元数据 schema、命名规范、代码调用示例、建库价值判断(哪些该入库/谨慎/不该)、全案模板(templates/)详解

@@ -288,9 +288,9 @@ Series_FeiliCalm_v01/
 ProductLaunch_Tech_v02/
 ```
 
-### 6.5 使用流程(配合 remotion-video skill)
+### 6.5 使用流程
 
-1. 做视频第 3 步(分镜拆解)前,先查 `templates/` 有没有匹配的全案模板
+1. 开新视频项目前,先查 `templates/` 有没有匹配的全案模板
 2. 有 → 拷贝模板目录到新工程,按 `rhythm.md` 填内容槽位,`style.yaml`/`voice.yaml` 解析资产 id 引用
 3. 没有 → 从零做,项目结束后按维护节奏提炼新模板入库
 
